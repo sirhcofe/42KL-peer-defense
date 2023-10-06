@@ -23,7 +23,7 @@ body {
       var(--background-end-rgb),
       var(--background-start-rgb) 
     ) */
-    @apply bg-white font-black
+    @apply bg-white font-black font-normal
 }
 
 h1, h2, h3, h4, h5 {
