@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Rubik } from "next/font/google";
+import { Jost } from "next/font/google";
 
-const rubik = Rubik({ subsets: ["latin"] });
+const rubik = Jost({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
