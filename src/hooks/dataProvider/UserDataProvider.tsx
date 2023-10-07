@@ -1,22 +1,33 @@
+"use client";
+
 import React from "react";
 
-type TUserData = {};
+type TUserData = {
+  accessToken: string;
+  setAccessToken: (data: string) => void;
+  intraData: IntraDataT;
+  setIntraData: (data: IntraDataT) => void;
+  userKind: string;
+  setUserKind: (data: string) => void;
+};
 
-type TIntraData = Record<string, string>;
+export type IntraDataT = Record<string, string>;
 
-export const UserContext = React.createContext({} as TUserData);
-
-export const UserDataProvider: React.FC<{ children: React.ReactElement }> = ({
+export const UserDataProvider = ({
   children,
+}: {
+  children: React.ReactNode;
 }) => {
   const [accessToken, setAccessToken] = React.useState<string>("");
-  const [intraData, setIntraData] = React.useState<TIntraData>({});
+  const [intraData, setIntraData] = React.useState<IntraDataT>({});
   const [userKind, setUserKind] = React.useState<string>("");
   return (
     <UserContext.Provider
       value={{
         accessToken,
         setAccessToken,
+        intraData,
+        setIntraData,
         userKind,
         setUserKind,
       }}
@@ -25,6 +36,8 @@ export const UserDataProvider: React.FC<{ children: React.ReactElement }> = ({
     </UserContext.Provider>
   );
 };
+
+export const UserContext = React.createContext({} as TUserData);
 
 export const useUserContext = () => {
   const userData = React.useContext(UserContext);
