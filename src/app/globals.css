@@ -11,17 +11,21 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-start-rgb: #000000;
+    --background-end-rgb: #5e5368;
   }
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
+  /* color: rgb(var(--foreground-rgb)); */
+  /* background: linear-gradient(
       to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      var(--background-end-rgb),
+      var(--background-start-rgb) 
+    ) */
+    @apply bg-white font-black font-normal
+}
+
+h1, h2, h3, h4, h5 {
+  @apply font-semibold
 }

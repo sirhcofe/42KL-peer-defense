@@ -21,8 +21,8 @@ export default function Home() {
     });
   }, []);
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      MAIN PAGE {accessToken}
+    <main className="flex flex-col items-center justify-between p-24 w-full">
+      <h1>The best dashboard for bocal</h1>
     </main>
   );
 }
