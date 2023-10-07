@@ -1,10 +1,10 @@
 import "./globals.css";
 import React from "react";
 import type { Metadata } from "next";
+import { Jost } from "next/font/google";
 import ParentProvider from "@/hooks/dataProvider/ParentProvider";
-import { Rubik } from "next/font/google";
 
-const rubik = Rubik({ subsets: ["latin"] });
+const rubik = Jost({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "42MY Student Management",
@@ -22,7 +22,9 @@ export default function RootLayout({
         <div className="w-full p-4 bg-pink-500">
           <h3>User Role</h3>
         </div>
-        <ParentProvider>{children}</ParentProvider>
+        <ParentProvider>
+          <div className="py-6">{children}</div>
+        </ParentProvider>
       </body>
     </html>
   );
