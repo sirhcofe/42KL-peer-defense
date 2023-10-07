@@ -1,20 +1,17 @@
 import React from "react";
 
 import { InputHTMLAttributes } from "react";
-import { FieldErrors } from "react-hook-form";
-import { FormValue } from "../eval-form/type";
+import { FieldError } from "react-hook-form";
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  errors?: FieldErrors | null;
-  id: string;
+  errors: FieldError | undefined;
+  register: any;
 }
 
 const TextInput = ({
-  errors = null,
-  id,
+  errors = undefined,
   children,
-  className,
-  ...props
+  register,
 }: TextInputProps) => {
   return (
     <div className="mb-4 w-full">
@@ -25,11 +22,11 @@ const TextInput = ({
         type="text"
         id="name"
         className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-          errors && errors[id] ? "border-red-500" : ""
+          errors ? "border-red-500" : ""
         }`}
-        {...props}
+        {...register}
       />
-      {errors && errors[id] && (
+      {errors && (
         <p className="text-red-500 text-xs italic">This field is required</p>
       )}
     </div>
