@@ -36,21 +36,67 @@ import {
 //   },
 // ];
 
-interface CustomTimeModalProps {
+interface ModalProps {
   isOpen: boolean;
   closeModal: () => void;
   buttonRef: RefObject<HTMLDivElement>;
 }
 
-function CustomTimeModal({
-  isOpen,
-  closeModal,
-  buttonRef,
-}: CustomTimeModalProps) {
+function ExtCircumModal({ isOpen, closeModal, buttonRef }: ModalProps) {
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-black/75 absolute top-0 left-0">
-      <div className="w-1/3 bg-white rounded-3xl" ref={buttonRef}></div>
-    </div>
+    <>
+      {isOpen && (
+        <div className="w-screen h-screen flex items-center justify-center bg-black/75 absolute top-0 left-0">
+          <div
+            className="flex flex-col w-5/6 md:w-3/4 lg:w-1/2 bg-white rounded-3xl py-4 px-10 gap-y-3"
+            ref={buttonRef}
+          >
+            <h2>Sample extenuating circumstances</h2>
+            <p className="text-xs text-gray-500">
+              Extenuating circumstances are only recognized and considered when
+              they meet predetermined criteria. Such criteria may include but
+              are not limited to:
+            </p>
+            <p>1. Let us win plis</p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function CustomTimeModal({ isOpen, closeModal, buttonRef }: ModalProps) {
+  const currentDate = new Date();
+  const currentDayOfWeek = currentDate.getDay();
+  const daysUntilMonday = 1 - currentDayOfWeek + 7;
+  const nextMonday = new Date(
+    currentDate.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
+  ).getDate();
+  return (
+    <>
+      {isOpen && (
+        <div className="w-screen h-screen flex items-center justify-center bg-black/75 absolute top-0 left-0">
+          <div
+            className="flex flex-col w-3/4 md:w-1/2 lg:w-1/3 bg-white rounded-3xl py-4 px-10 gap-y-3 items-center"
+            ref={buttonRef}
+          >
+            <div>
+              <h2 className="text-gray-500 mx-2">Date</h2>
+              <div className="flex gap-x-4 my-3 w-full">
+                <div className="h-20 w-28 rounded-xl border-2 flex flex-col items-center justify-center">
+                  <p className="text-sm">Mon</p>
+                  <h3>{nextMonday}</h3>
+                </div>
+                <div className="h-20 w-28 rounded-xl border-2 flex flex-col items-center justify-center">
+                  <p className="text-sm">Tue</p>
+                  <h3>{nextMonday + 1}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -59,14 +105,15 @@ function CustomTimeButton({
 }: {
   setSelectedDate: Dispatch<SetStateAction<number>>;
 }) {
-  const [isButtonOpen, openButtonModal, closeButtonModal, buttonRef] =
-    useModal(false);
+  const [isCTOpen, openCTModal, closeCTModal, CTRef] = useModal(false);
+  const [isECOpen, openECModal, closeECModal, ECRef] = useModal(false);
+
   return (
     <div className="flex flex-col w-60 items-start justify-center">
       <button
         className="w-40 h-20 rounded-lg border-2 border-[#00B9BB]"
         onClick={() => {
-          openButtonModal();
+          openCTModal();
           setSelectedDate(-1);
         }}
       >
@@ -74,15 +121,22 @@ function CustomTimeButton({
       </button>
       <div className="flex flex-col items-center justify-center py-1">
         <p className="text-xs">if you have&nbsp;</p>
-        <button>
+        <button onClick={() => openECModal()}>
           <p className="text-xs underline">extenuating circumstances</p>
         </button>
       </div>
-      {isButtonOpen && (
+      {isCTOpen && (
         <CustomTimeModal
-          isOpen={isButtonOpen}
-          closeModal={closeButtonModal}
-          buttonRef={buttonRef}
+          isOpen={isCTOpen}
+          closeModal={closeCTModal}
+          buttonRef={CTRef}
+        />
+      )}
+      {isECOpen && (
+        <ExtCircumModal
+          isOpen={isECOpen}
+          closeModal={closeECModal}
+          buttonRef={ECRef}
         />
       )}
     </div>
@@ -165,7 +219,7 @@ export default function TimeSlotPicker() {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
       />
-      <p>
+      <p className="h-8 items-center justify-center">
         {selectedDate != -1
           ? "Selected DateTime: " + timeSlots[selectedDate].time
           : ""}
