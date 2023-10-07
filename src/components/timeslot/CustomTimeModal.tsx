@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Collapse, Center, Divider } from "@chakra-ui/react";
+import { Collapse, Divider, useToast } from "@chakra-ui/react";
 
 const time = [
   { time: "09 00" },
@@ -26,13 +26,13 @@ const time = [
 ];
 
 function TimePick({
+  selectedDate,
   selectedTime,
   setSelectedTime,
-  setCustomTime,
 }: {
+  selectedDate: number;
   selectedTime: number;
   setSelectedTime: Dispatch<SetStateAction<number>>;
-  setCustomTime: Dispatch<SetStateAction<string>>;
 }) {
   const commonClassNames = (i: number) => ({
     border: i === selectedTime ? "border-[#00B9BB]" : "",
@@ -48,7 +48,13 @@ function TimePick({
           return (
             <button
               key={i}
-              className={`flex flex-col w-28 h-10 rounded-lg border-2 items-center justify-center ${cNames.border}`}
+              className={`flex flex-col w-28 h-10 rounded-lg border-2 items-center justify-center ${
+                cNames.border
+              } ${
+                selectedDate === 0 &&
+                ((i >= 1 && i <= 2) || (i >= 5 && i <= 8)) &&
+                "hidden"
+              }`}
               onClick={() => setSelectedTime(i)}
             >
               <p className={`${cNames.text}`}>{time.time}</p>
@@ -61,21 +67,14 @@ function TimePick({
 }
 
 function DatePick({
+  nextMondayDate,
   selectedDate,
   setSelectedDate,
-  setCustomDate,
 }: {
+  nextMondayDate: number;
   selectedDate: number;
   setSelectedDate: Dispatch<SetStateAction<number>>;
-  setCustomDate: Dispatch<SetStateAction<string>>;
 }) {
-  const currentDate = new Date();
-  const currentDayOfWeek = currentDate.getDay();
-  const daysUntilMonday = 1 - currentDayOfWeek + 7;
-  const nextMonday = new Date(
-    currentDate.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
-  ).getDate();
-
   const getColor = (index) => {
     return `${selectedDate === index ? "text-[#00B9BB] border-[#00B9BB]" : ""}`;
   };
@@ -91,7 +90,7 @@ function DatePick({
           onClick={() => setSelectedDate(0)}
         >
           <p className={`text-sm ${getColor(0)}`}>Mon</p>
-          <h3 className={`text-xl ${getColor(0)}`}>{nextMonday}</h3>
+          <h3 className={`text-xl ${getColor(0)}`}>{nextMondayDate}</h3>
         </button>
         <button
           className={`h-20 w-28 rounded-xl border-2 flex flex-col items-center justify-center shadow-md ${getColor(
@@ -100,7 +99,7 @@ function DatePick({
           onClick={() => setSelectedDate(1)}
         >
           <p className={`text-sm ${getColor(1)}`}>Tue</p>
-          <h3 className={`text-xl ${getColor(1)}`}>{nextMonday + 1}</h3>
+          <h3 className={`text-xl ${getColor(1)}`}>{nextMondayDate + 1}</h3>
         </button>
       </div>
     </div>
@@ -108,7 +107,9 @@ function DatePick({
 }
 
 interface CustomTimeModalProps {
-  setter: () => void;
+  setter: Dispatch<SetStateAction<Date>>;
+  reason: Dispatch<SetStateAction<String>>;
+  setMode: Dispatch<SetStateAction<number>>;
   isOpen: boolean;
   closeModal: () => void;
   buttonRef: RefObject<HTMLDivElement>;
@@ -116,17 +117,59 @@ interface CustomTimeModalProps {
 
 export default function CustomTimeModal({
   setter,
+  reason,
+  setMode,
   isOpen,
   closeModal,
   buttonRef,
 }: CustomTimeModalProps) {
-  const [customDate, setCustomDate] = useState("");
-  const [customTime, setCustomTime] = useState("");
   const [selectedDate, setSelectedDate] = useState(-1);
   const [selectedTime, setSelectedTime] = useState(-1);
   const [isTimeOpen, setIsTimeOpen] = useState(false);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const toast = useToast();
+
+  const currentDate = new Date();
+  const currentDayOfWeek = currentDate.getDay();
+  const daysUntilMonday = 1 - currentDayOfWeek + 7;
+  const nextMonday = new Date(
+    currentDate.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
+  );
+  const nextMondayDate = nextMonday.getDate();
+
+  const handleSetTime = () => {
+    if (inputValue === "") {
+      toast({
+        title: "Wo mei K",
+        description: "Please input a reason.",
+        status: "error",
+        position: "top-right",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      var finalDate = new Date(nextMonday);
+      finalDate.setDate(finalDate.getDate() + selectedDate);
+      const finalTime = time[selectedTime].time.split(" ");
+      finalDate.setHours(Number(finalTime[0]));
+      finalDate.setMinutes(Number(finalTime[1]));
+      finalDate.setSeconds(0);
+      finalDate.setMilliseconds(0);
+      setter(finalDate);
+      setMode(0);
+      reason(inputValue);
+      toast({
+        title: "Set time successful",
+        description: "burubiu burubiu",
+        status: "success",
+        position: "top-right",
+        duration: 5000,
+        isClosable: true,
+      });
+      closeModal();
+    }
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
@@ -153,15 +196,15 @@ export default function CustomTimeModal({
             ref={buttonRef}
           >
             <DatePick
+              nextMondayDate={nextMondayDate}
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
-              setCustomDate={setCustomDate}
             />
             <Collapse in={isTimeOpen} animateOpacity>
               <TimePick
+                selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 setSelectedTime={setSelectedTime}
-                setCustomTime={setCustomTime}
               />
             </Collapse>
             <Collapse in={isReasonOpen} animateOpacity className="w-[350px]">
@@ -173,7 +216,10 @@ export default function CustomTimeModal({
                   placeholder="Reason for requiring a custom time slot."
                   className="w-full rounded-xl py-2 px-4 outline-none border-2"
                 />
-                <button className="w-60 rounded-full bg-[#00B9BB] py-2">
+                <button
+                  className="w-60 rounded-full bg-[#00B9BB] py-2"
+                  onClick={() => handleSetTime()}
+                >
                   <p>Set custom time</p>
                 </button>
               </div>
