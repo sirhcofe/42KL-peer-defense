@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type TUserData = {
+type UserDataT = {
   accessToken: string;
   setAccessToken: (data: string) => void;
   intraData: IntraDataT;
@@ -12,6 +12,8 @@ type TUserData = {
 };
 
 export type IntraDataT = Record<string, string>;
+
+export const UserContext = React.createContext({} as UserDataT);
 
 export const UserDataProvider = ({
   children,
@@ -36,8 +38,6 @@ export const UserDataProvider = ({
     </UserContext.Provider>
   );
 };
-
-export const UserContext = React.createContext({} as TUserData);
 
 export const useUserContext = () => {
   const userData = React.useContext(UserContext);
