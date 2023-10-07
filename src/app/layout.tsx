@@ -19,8 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={rubik.className + " min-h-screen"}>
-        <div className="w-full p-6 bg-pink-200">
-          <h1>User Role</h1>
+        <div className="w-full p-4 bg-pink-500">
+          <h3>User Role</h3>
         </div>
         <ParentProvider>{children}</ParentProvider>
       </body>
