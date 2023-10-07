@@ -1,31 +1,25 @@
 "use client";
-import Image from "next/image";
-import React from "react";
-import {
-  useUserContext,
-  IntraDataT,
-} from "@/hooks/dataProvider/UserDataProvider";
-import { getCookies, clearCookies } from "@/serverActions/getCookies";
-import { urlConfig, envConfig } from "@/uiConfig/intraConfig";
 
-import axios from "axios";
+import React from "react";
+import { Image, Heading, Text } from "@chakra-ui/react";
+import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
+
 export default function Home() {
-  const { accessToken, setAccessToken, intraData, setIntraData } =
-    useUserContext();
-  React.useEffect(() => {
-    getCookies("access_token").then((value) => {
-      setAccessToken(value);
-      axios.get(`${urlConfig.meURL}?access_token=${value}`).then((response) => {
-        console.log(response.data);
-        setIntraData(response.data);
-      });
-    });
-  }, []);
+  const { intraData } = useUserContext();
+
   return (
     <main className="flex flex-col items-center justify-between p-24 w-full">
-      <h1>The best dashboard for bocal</h1>
-      <h3>You are: {intraData.displayname}</h3>
-      <h3>Login: {intraData.login}</h3>
+      <Heading as="h1" fontSize={"4xl"} mb={"42px"}>
+        The best dashboard for bocal
+      </Heading>
+      <Image
+        src={intraData.image?.versions?.medium}
+        alt={intraData.displayname}
+      />
+      <Text fontSize={"24px"} mt={"42px"}>
+        You are: {intraData.displayname}
+      </Text>
+      <Text fontSize={"24px"}>Login: {intraData.login}</Text>
     </main>
   );
 }

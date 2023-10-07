@@ -1,6 +1,9 @@
 "use client";
 
 import React from "react";
+import { getCookies } from "@/serverActions/getCookies";
+import { urlConfig } from "@/uiConfig/intraConfig";
+import axios from "axios";
 
 type UserDataT = {
   accessToken: string;
@@ -23,6 +26,16 @@ export const UserDataProvider = ({
   const [accessToken, setAccessToken] = React.useState<string>("");
   const [intraData, setIntraData] = React.useState<IntraDataT>({});
   const [userKind, setUserKind] = React.useState<string>("");
+
+  React.useEffect(() => {
+    getCookies("access_token").then((value) => {
+      setAccessToken(value);
+      axios.get(`${urlConfig.meURL}?access_token=${value}`).then((response) => {
+        setIntraData(response.data);
+      });
+    });
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
