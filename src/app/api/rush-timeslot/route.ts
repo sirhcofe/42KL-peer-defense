@@ -54,24 +54,27 @@ export async function GET(req: NextRequest, res: NextResponse) {
   return Response.json({ data, timeSlots });
 }
 
+type AddTimeslotBody = {
+  dateTime: Date;
+  evaluator: string;
+  isDefault: boolean;
+  teamId: string;
+};
 export async function POST(req: NextRequest, res: NextResponse) {
-  if (req.method === "POST") {
-    const collectionName = req.nextUrl.searchParams.get("collection");
-    const data = req.body;
+  const collectionName = req.nextUrl.searchParams.get("collection");
+  const data: AddTimeslotBody = await req.json();
 
-    try {
-      const docRef = await addDoc(
-        collection(firestore, collectionName ?? ""),
-        data,
-      );
-      return Response.json({ id: docRef.id, ...data });
-    } catch (error) {
-      return Response.json(
-        { error: "Failed to add document" },
-        { status: 500 },
-      );
-    }
-  } else {
-    return Response.json({ error: "Method not allowed" }, { status: 405 });
+  // convert strigify string to Date
+  data.dateTime = new Date(data.dateTime);
+
+  try {
+    const docRef = await addDoc(
+      collection(firestore, collectionName ?? ""),
+      data,
+    );
+    return Response.json({ id: docRef.id, data });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "Failed to add document" }, { status: 500 });
   }
 }
