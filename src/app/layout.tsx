@@ -20,7 +20,7 @@ export default function RootLayout({
         <div className="w-full p-4 bg-pink-500">
           <h3>User Role</h3>
         </div>
-        {children}
+        <div className="p-6">{children}</div>
       </body>
     </html>
   );

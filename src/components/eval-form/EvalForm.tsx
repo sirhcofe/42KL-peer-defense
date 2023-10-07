@@ -1,7 +1,6 @@
 "use client";
 import { FieldValues, FormProvider, useForm } from "react-hook-form";
 import { FormValue, Member } from "./type";
-import TextInput from "../common/TextInput";
 import { MembersNote } from "./MembersNote";
 
 /**
@@ -27,32 +26,22 @@ export default function EvalForm() {
         onSubmit={methods.handleSubmit(onSubmit)}
         className="max-w-lg mx-auto"
       >
-        <h1>Rush Evaluation</h1>
-        <TextInput
-          errors={methods.formState.errors}
-          id="teamName"
-          {...methods.register("teamName", { required: true })}
-        >
-          Team name
-        </TextInput>
-        <TextInput
-          errors={methods.formState.errors}
-          id="evaluator"
-          {...methods.register("evaluator", { required: true })}
-        >
-          Evaluator
-        </TextInput>
+        <div className="text-center mb-4">
+          <h1 className="mb-2">Evaluation for {"Rush 00"}</h1>
+          <p>
+            {`You should be evaluating `}
+            <span className="text-cyan-600">{"chenlee"}</span>
+            {` team`}
+          </p>
+        </div>
         <MembersNote members={members} />
         <div className="mb-4">
-          <label
-            htmlFor="message"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Notes
+          <label htmlFor="message" className="block text-gray-700 mb-2">
+            Conclusion
           </label>
           <textarea
             id="notes"
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+            className={`shadow appearance-none border rounded w-full min-h-[120px] py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
               methods.formState.errors.notes ? "border-red-500" : ""
             }`}
             {...methods.register("notes", { required: true })}
