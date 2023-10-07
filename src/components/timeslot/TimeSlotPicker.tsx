@@ -1,34 +1,40 @@
 "use client";
 
 import useModal from "@/hooks/useModal";
-import { Dispatch, RefObject, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 
-const timeSlots = [
-  {
-    time: "10 00",
-    availability: 4,
-  },
-  {
-    time: "11 00",
-    availability: 4,
-  },
-  {
-    time: "14 00",
-    availability: 4,
-  },
-  {
-    time: "15 00",
-    availability: 4,
-  },
-  {
-    time: "16 00",
-    availability: 4,
-  },
-  {
-    time: "17 00",
-    availability: 4,
-  },
-];
+// const timeSlots = [
+//   {
+//     time: "10 00",
+//     availability: 4,
+//   },
+//   {
+//     time: "11 00",
+//     availability: 4,
+//   },
+//   {
+//     time: "14 00",
+//     availability: 4,
+//   },
+//   {
+//     time: "15 00",
+//     availability: 4,
+//   },
+//   {
+//     time: "16 00",
+//     availability: 4,
+//   },
+//   {
+//     time: "17 00",
+//     availability: 4,
+//   },
+// ];
 
 interface CustomTimeModalProps {
   isOpen: boolean;
@@ -84,9 +90,13 @@ function CustomTimeButton({
 }
 
 function PickTime({
+  data,
+  timeSlots,
   selectedDate,
   setSelectedDate,
 }: {
+  data: any[];
+  timeSlots: any[];
   selectedDate: number;
   setSelectedDate: Dispatch<SetStateAction<number>>;
 }) {
@@ -121,12 +131,40 @@ function PickTime({
 }
 
 export default function TimeSlotPicker() {
+  const [data, setData] = useState<any>([]);
+  const [timeSlots, setTimeSlots] = useState<any>([]);
   const [selectedDate, setSelectedDate] = useState(-1);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch(
+          "http://localhost:3000/api/rush-timeslot?collection=rush-timetables",
+        );
+        if (res.ok) {
+          const jsonData = await res.json();
+          setData(jsonData.data);
+          setTimeSlots(jsonData.timeSlots);
+        } else {
+          console.error("Failed to fetch data");
+        }
+      } catch (error) {
+        console.error("Error fetching data from Firestore:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
       <h2>Pick a timeslot for your team rush evaluation</h2>
-      <PickTime selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      <PickTime
+        data={data}
+        timeSlots={timeSlots}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+      />
       <p>
         {selectedDate != -1
           ? "Selected DateTime: " + timeSlots[selectedDate].time
