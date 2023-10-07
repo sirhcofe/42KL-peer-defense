@@ -2,6 +2,8 @@
 
 import { Image, Box, Heading } from "@chakra-ui/react";
 import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
+import StudentTable from "@/components/student-data/StudentTable";
+import LastSubmission from "@/components/student-data/LastSubmission";
 const Banana = () => {
   const { imageURL, intraData } = useUserContext();
 
@@ -20,13 +22,13 @@ const Banana = () => {
   return (
     <Box
       display={"flex"}
-      flexDirection={"column"}
-      justifyContent={"center"}
+      flexDirection={"row"}
+      justifyContent={"space-around"}
       alignItems={"center"}
       gap={"32px"}
     >
-      <h1>Here i shall display my banana.</h1>
-      <Image src={imageURL} alt="Dan Abramov" />
+      <StudentTable />
+      <LastSubmission />
     </Box>
   );
 };
