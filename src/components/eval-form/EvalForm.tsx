@@ -34,7 +34,11 @@ export default function EvalForm() {
             {` team`}
           </p>
         </div>
+
+        {/* Members note component */}
         <MembersNote members={members} />
+        {/* Members note component */}
+
         <div className="mb-4">
           <label htmlFor="message" className="block text-gray-700 mb-2">
             Conclusion

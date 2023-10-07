@@ -16,12 +16,12 @@ export const MembersNote = ({ members }: MembersNoteProps) => {
 
   return members.map((member, index) => (
     <div key={index} className="mb-4 border rounded p-4">
-      <h3>Member {index + 1}</h3>
-      <div className="w-full gap-4">
-        <p>
+      <h3 className="mb-2">
+        Member {index + 1}
+        <span className="font-normal text-base ml-3">
           {member.name} | {member.intra}
-        </p>
-      </div>
+        </span>
+      </h3>
 
       <label className="block text-gray-700 mb-2" htmlFor={`notes-${index}`}>
         Notes

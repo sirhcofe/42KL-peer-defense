@@ -22,7 +22,9 @@ export default function RootLayout({
         <div className="w-full p-4 bg-pink-500">
           <h3>User Role</h3>
         </div>
-        <ParentProvider>{children}</ParentProvider>
+        <ParentProvider>
+          <div className="py-6">{children}</div>
+        </ParentProvider>
       </body>
     </html>
   );
