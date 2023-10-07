@@ -8,41 +8,26 @@ import {
   useEffect,
   useState,
 } from "react";
+import {
+  Box,
+  Divider,
+  AbsoluteCenter,
+  Center,
+  Tooltip,
+} from "@chakra-ui/react";
+import CustomTimeModal from "./CustomTimeModal";
 
-// const timeSlots = [
-//   {
-//     time: "10 00",
-//     availability: 4,
-//   },
-//   {
-//     time: "11 00",
-//     availability: 4,
-//   },
-//   {
-//     time: "14 00",
-//     availability: 4,
-//   },
-//   {
-//     time: "15 00",
-//     availability: 4,
-//   },
-//   {
-//     time: "16 00",
-//     availability: 4,
-//   },
-//   {
-//     time: "17 00",
-//     availability: 4,
-//   },
-// ];
-
-interface ModalProps {
+interface ExtCircumModalProps {
   isOpen: boolean;
   closeModal: () => void;
   buttonRef: RefObject<HTMLDivElement>;
 }
 
-function ExtCircumModal({ isOpen, closeModal, buttonRef }: ModalProps) {
+function ExtCircumModal({
+  isOpen,
+  closeModal,
+  buttonRef,
+}: ExtCircumModalProps) {
   return (
     <>
       {isOpen && (
@@ -58,41 +43,6 @@ function ExtCircumModal({ isOpen, closeModal, buttonRef }: ModalProps) {
               are not limited to:
             </p>
             <p>1. Let us win plis</p>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function CustomTimeModal({ isOpen, closeModal, buttonRef }: ModalProps) {
-  const currentDate = new Date();
-  const currentDayOfWeek = currentDate.getDay();
-  const daysUntilMonday = 1 - currentDayOfWeek + 7;
-  const nextMonday = new Date(
-    currentDate.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
-  ).getDate();
-  return (
-    <>
-      {isOpen && (
-        <div className="w-screen h-screen flex items-center justify-center bg-black/75 absolute top-0 left-0">
-          <div
-            className="flex flex-col w-3/4 md:w-1/2 lg:w-1/3 bg-white rounded-3xl py-4 px-10 gap-y-3 items-center"
-            ref={buttonRef}
-          >
-            <div>
-              <h2 className="text-gray-500 mx-2">Date</h2>
-              <div className="flex gap-x-4 my-3 w-full">
-                <div className="h-20 w-28 rounded-xl border-2 flex flex-col items-center justify-center">
-                  <p className="text-sm">Mon</p>
-                  <h3>{nextMonday}</h3>
-                </div>
-                <div className="h-20 w-28 rounded-xl border-2 flex flex-col items-center justify-center">
-                  <p className="text-sm">Tue</p>
-                  <h3>{nextMonday + 1}</h3>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -127,6 +77,7 @@ function CustomTimeButton({
       </div>
       {isCTOpen && (
         <CustomTimeModal
+          setter={() => setSelectedDate}
           isOpen={isCTOpen}
           closeModal={closeCTModal}
           buttonRef={CTRef}
@@ -160,7 +111,7 @@ function PickTime({
   });
 
   return (
-    <div className="flex items-center justify-center gap-x-8">
+    <div className="flex h-full items-center justify-center gap-x-8">
       <div className="grid grid-cols-2 gap-4">
         {timeSlots.map((slot, i) => {
           const cNames = commonClassNames(i);
@@ -178,7 +129,14 @@ function PickTime({
           );
         })}
       </div>
-      <div className="w-[2px] h-60 mx-10 rounded-full bg-gray-400" />
+      <Box position="relative" padding="16">
+        <Center height={"240px"}>
+          <Divider orientation="vertical" border="1px solid #00B9BB" />
+        </Center>
+        <AbsoluteCenter bg="white" px="4">
+          or
+        </AbsoluteCenter>
+      </Box>
       <CustomTimeButton setSelectedDate={setSelectedDate} />
     </div>
   );
