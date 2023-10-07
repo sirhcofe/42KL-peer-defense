@@ -11,7 +11,7 @@ export const urlConfig: Record<urlConfigKeys, string> = {
 type envConfigKeys = 'client_id' | 'client_secret' | 'grant_type' | 'redirect_uri';
 
 export const envConfig: Record<envConfigKeys, string> = {
-  client_id:process.env.PERR_DEFENSE_CLIENT_ID || "",
+  client_id:process.env.PEER_DEFENSE_CLIENT_ID || "",
   client_secret:process.env.PEER_DEFENSE_CLIENT_SECRET || "",
   grant_type:process.env.PEER_DEFENSE_GRANT_TYPE || "",
   redirect_uri:process.env.PEER_DEFENSE_REDIRECT_URI || "",
