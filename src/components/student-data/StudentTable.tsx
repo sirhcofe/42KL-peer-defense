@@ -18,22 +18,35 @@ import {
 } from "@chakra-ui/react";
 import { relative } from "path";
 import React from "react";
-import studentData from "src/student-data/sample.json";
-let criticalDays = studentData
-  .filter((student) => {
-    return (
-      student["days_till_blockhole"] < 30 && !student["name"].includes("GUEST")
-    );
-  })
-  .sort((a, b) => a["days_till_blockhole"] - b["days_till_blockhole"]);
+import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
 
-let sinceLastSubmission = studentData
-  .filter((student) => {
-    return student["since_last_submission"] > 30;
-  })
-  .sort((a, b) => b["since_last_submission"] - a["since_last_submission"]);
+// sort 0 = ascending, 1 = descending
+function filterByDays(data, days, sort) {
+  let filtered = data.filter((student) => {
+    return (
+      student["days_till_blockhole"] < days &&
+      !student["name"].includes("GUEST")
+    );
+  });
+  if (sort === 1) {
+    return filtered.sort(
+      (a, b) => b["days_till_blockhole"] - a["days_till_blockhole"],
+    );
+  } else {
+    return filtered.sort(
+      (a, b) => a["days_till_blockhole"] - b["days_till_blockhole"],
+    );
+  }
+}
 
 const StudentTable = () => {
+  const [displayList, setDisplayList] = React.useState<
+    Record<string, string>[]
+  >([]);
+  const { criticalDays } = useStudentContext();
+  React.useEffect(() => {
+    setDisplayList(filterByDays(criticalDays, 30, 0));
+  }, []);
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
       <Heading ml={"16px"}>Students with Critical Days</Heading>
@@ -52,7 +65,7 @@ const StudentTable = () => {
           />
         </InputGroup>
 
-        <Text>Total Students: {criticalDays.length}</Text>
+        <Text>Total Students: {displayList.length}</Text>
       </Box>
       <Button>Download</Button>
       <TableContainer
@@ -90,7 +103,7 @@ const StudentTable = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {criticalDays.map((student, i) => {
+            {displayList.map((student, i) => {
               return (
                 <Tr key={i}>
                   <Td>{student["intra_id"]}</Td>
