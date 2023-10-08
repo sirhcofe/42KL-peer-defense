@@ -1,4 +1,16 @@
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  where,
+  query,
+  getDoc,
+  limit,
+  updateDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
 import app from "@/firebase";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,51 +25,49 @@ export async function GET(req: NextRequest, res: NextResponse) {
     ...doc.data(),
   }));
 
-  if (collectionName === "rush-timetables") {
-    let timeSlots = [
-      {
-        time: "10 00",
-        availability: 4,
-      },
-      {
-        time: "11 00",
-        availability: 4,
-      },
-      {
-        time: "14 00",
-        availability: 4,
-      },
-      {
-        time: "15 00",
-        availability: 4,
-      },
-      {
-        time: "16 00",
-        availability: 4,
-      },
-      {
-        time: "17 00",
-        availability: 4,
-      },
-    ];
-    data.map((document, i) => {
-      const date = new Date(document.dateTime.seconds * 1000);
-      const hours = date.getHours();
-      const timeString = `${hours < 10 ? "0" : ""}${hours} 00`;
-      timeSlots.map((time, i) => {
-        if (time.time === timeString && collectionName === "rush-timetables") {
-          time.availability -= 1;
-        }
-      });
+  let timeSlots = [
+    {
+      time: "10 00",
+      availability: 4,
+    },
+    {
+      time: "11 00",
+      availability: 4,
+    },
+    {
+      time: "14 00",
+      availability: 4,
+    },
+    {
+      time: "15 00",
+      availability: 4,
+    },
+    {
+      time: "16 00",
+      availability: 4,
+    },
+    {
+      time: "17 00",
+      availability: 4,
+    },
+  ];
+
+  data.map((document, i) => {
+    const date = new Date(document.dateTime.seconds * 1000);
+    const hours = date.getHours();
+    const timeString = `${hours < 10 ? "0" : ""}${hours} 00`;
+    timeSlots.map((time, i) => {
+      if (time.time === timeString) {
+        time.availability -= 1;
+      }
     });
+  });
 
-    return Response.json({ data, timeSlots });
-  }
-
+  const result = [];
   if (collectionName === "cadet-slot") {
-    let filteredData = data.filter((item) => !item.isDefault);
+    const filterData = data.filter((item) => !item.isDefault);
+    let filteredData = filterData.filter((item) => !item.taken);
 
-    const result = [];
     while (filteredData.length) {
       console.log("indeex 0", filteredData[0]);
       const curr = filteredData[0].dateTime;
@@ -71,23 +81,12 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
       result.push({ dateTime: curr.seconds, count });
     }
+  }
 
-    // const groupedData = filteredData.map((item) => {
-    //   //   const date = new Date(item.dateTime.seconds * 1000);
-    //   console.log("ASHDFASD", item.dateTime.seconds);
-    //   const existingEntry = result.find(
-    //     (entry) => entry.dateTime.seconds === item.dateTime.seconds,
-    //   );
-
-    //   if (existingEntry) {
-    //     existingEntry.count++;
-    //   } else {
-    //     result.push({ time: item.dateTime.seconds, count: 1 });
-    //   }
-    // }, []);
-
-    console.log(result);
-    return Response.json({ data, result });
+  if (collectionName === "rush-timetables") {
+    return Response.json({ data, timeSlots });
+  } else if (collectionName === "cadet-slot") {
+    return Response.json({ data, timeSlots, result });
   } else {
     return Response.json({ error: "Failed to add document" }, { status: 500 });
   }
@@ -179,4 +178,49 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   return Response.json({ error: "Invalid collection name" }, { status: 500 });
+}
+
+export async function PATCH(req: NextRequest, res: NextResponse) {
+  const collectionName = req.nextUrl.searchParams.get("collection");
+  const body = await req.json();
+
+  let colRef;
+  if (collectionName) colRef = collection(firestore, collectionName);
+  else
+    return Response.json(
+      { error: "Missing param: collection" },
+      { status: 500 },
+    );
+
+  console.log("DATEEEEE", Date.parse(body.dateTime) / 1000);
+  try {
+    const q = query(
+      colRef,
+      where(
+        "dateTime",
+        "==",
+        Timestamp.fromDate(new Date(body.dateTime.seconds * 1000)),
+      ),
+      where("taken", "==", false),
+      limit(1),
+    );
+    const docs = await getDocs(q);
+
+    console.log("DOCS", docs);
+
+    let docId: any;
+
+    docs.forEach((doc) => {
+      docId = doc.id;
+    });
+
+    console.log("INDEX", docId);
+
+    const docRef = doc(firestore, collectionName, docId);
+    await updateDoc(docRef, {
+      taken: true,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 }

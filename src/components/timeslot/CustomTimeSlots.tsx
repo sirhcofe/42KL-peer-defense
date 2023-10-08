@@ -36,23 +36,29 @@ function ExtCircumModal({
 
 export default function CustomTimeSlots({
   student,
-  cadetTimeSlots,
+  cadetCustomSlots,
   setFinalDate,
   setReason,
   setMode,
   setSelectedDate,
+  selectedCadetDate,
+  setSelectedCadetDate,
+  inputValue,
+  setInputValue,
 }: {
   student: string;
-  cadetTimeSlots: any;
+  cadetCustomSlots: any;
   setFinalDate: Dispatch<SetStateAction<Date>>;
   setReason: Dispatch<SetStateAction<String>>;
   setMode: Dispatch<SetStateAction<number>>;
   setSelectedDate: Dispatch<SetStateAction<number>>;
+  selectedCadetDate: number;
+  setSelectedCadetDate: Dispatch<SetStateAction<number>>;
+  inputValue: string;
+  setInputValue: Dispatch<SetStateAction<string>>;
 }) {
   const [isCTOpen, openCTModal, closeCTModal, CTRef] = useModal(false);
   const [isECOpen, openECModal, closeECModal, ECRef] = useModal(false);
-  const [inputValue, setInputValue] = useState("");
-  const [selectedCadetDate, setSelectedCadetDate] = useState(-1);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
@@ -78,17 +84,48 @@ export default function CustomTimeSlots({
             </button>
           </div>
           <div className="h-[176px] w-full flex item-center my-4">
-            {cadetTimeSlots.length !== 0 ? (
+            {cadetCustomSlots.length !== 0 ? (
               <div className="flex flex-col w-full gap-y-4 overflow-y-scroll">
-                {cadetTimeSlots.map((time, i) => {
+                {cadetCustomSlots.map((time, i) => {
                   const cNames = commonClassNames(i, time.availability);
+                  const datee = new Date(time.dateTime * 1000);
+                  console.log("DATE", datee);
                   return (
                     <button
-                      className={`w-full min-h-[80px] border-2 rounded-md ${cNames.border}`}
+                      className={`w-full min-h-[80px] border-2 rounded-md flex flex-col items-start justify-center py-1 px-3 ${cNames.border}`}
                       key={i}
-                      onClick={() => setSelectedCadetDate(i)}
+                      onClick={() => {
+                        setSelectedCadetDate(i);
+                        setFinalDate(datee);
+                        setSelectedDate(-1);
+                        setMode(0);
+                      }}
                     >
-                      <p>Hello</p>
+                      <div className="flex items-end gap-x-1">
+                        <h2 className={cNames.text}>
+                          {datee.toLocaleString("default", {
+                            weekday: "short",
+                          })}
+                        </h2>
+                        <h2 className={cNames.text}>{datee.getDate()}</h2>
+                        <h3 className={cNames.text}>
+                          {datee.toLocaleString("default", { month: "short" })}
+                        </h3>
+                      </div>
+                      <div className="flex w-full">
+                        <h2 className={cNames.text}>
+                          {datee.toLocaleString("default", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hourCycle: "h24",
+                          })}
+                        </h2>
+                        <p
+                          className={`text-sm flex items-end justify-end w-full ${cNames.text}`}
+                        >
+                          Avail: {time.count}
+                        </p>
+                      </div>
                     </button>
                   );
                 })}

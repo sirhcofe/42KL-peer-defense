@@ -7,6 +7,7 @@ export default function PickTime({
   cadetTimeSlots,
   selectedDate,
   setSelectedDate,
+  setSelectedCadetDate,
 }: {
   data: any[];
   student: string;
@@ -14,6 +15,7 @@ export default function PickTime({
   cadetTimeSlots: any[];
   selectedDate: number;
   setSelectedDate: Dispatch<SetStateAction<number>>;
+  setSelectedCadetDate: Dispatch<SetStateAction<number>>;
 }) {
   const commonClassNames = (i: number, avail: number) => ({
     border: i === selectedDate ? "border-[#00B9BB]" : "",
@@ -36,7 +38,10 @@ export default function PickTime({
                 } ${cNames.border}`}
                 onClick={
                   slot.availability !== 0
-                    ? () => setSelectedDate(i)
+                    ? () => {
+                        setSelectedDate(i);
+                        setSelectedCadetDate(-1);
+                      }
                     : () => null
                 }
               >

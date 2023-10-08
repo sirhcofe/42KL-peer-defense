@@ -23,6 +23,8 @@ import axios from "axios";
 import PickTime from "./PickTime";
 import CustomTimeSlots from "./CustomTimeSlots";
 import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
+import { useRouter } from "next/navigation";
+import CountdownTimer from "../CountdownTimer";
 
 export default function TimeSlotPicker({ student }: { student: string }) {
   const [subscribed, setSubscribed] = useState(false);
@@ -31,7 +33,10 @@ export default function TimeSlotPicker({ student }: { student: string }) {
   const [cadetData, setCadetData] = useState<any>([]);
   const [timeSlots, setTimeSlots] = useState<any>([]);
   const [cadetTimeSlots, setCadetTimeSlots] = useState<any>([]);
+  const [cadetCustomSlots, setCadetCustomSlots] = useState<any>([]);
   const [selectedDate, setSelectedDate] = useState(-1);
+  const [selectedCadetDate, setSelectedCadetDate] = useState(-1);
+  const [inputValue, setInputValue] = useState("");
   const [finalDate, setFinalDate] = useState(null);
   const [mode, setMode] = useState(-1);
   const [reason, setReason] = useState("");
@@ -46,28 +51,7 @@ export default function TimeSlotPicker({ student }: { student: string }) {
   );
 
   const toast = useToast();
-
-  const successToast = () => {
-    toast({
-      title: "Date confirmed",
-      description:
-        "Please look out for email/discord dm for slot confirmation.",
-      status: "success",
-      position: "top-right",
-      duration: 5000,
-      isClosable: true,
-    });
-  };
-
-  const errorToast = () => {
-    toast({
-      title: "Wo mei KKK",
-      status: "error",
-      position: "top-right",
-      duration: 5000,
-      isClosable: true,
-    });
-  };
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -87,7 +71,8 @@ export default function TimeSlotPicker({ student }: { student: string }) {
               const jsonData = await res.json();
               console.log("JSON", jsonData);
               setCadetData(jsonData.data);
-              setCadetTimeSlots(jsonData.result);
+              setCadetTimeSlots(jsonData.timeSlots);
+              setCadetCustomSlots(jsonData.result);
               onToggle();
             } else {
               console.error("Failed to fetch data");
@@ -120,28 +105,82 @@ export default function TimeSlotPicker({ student }: { student: string }) {
     }
   }, [selectedDate]);
 
+  const onSuccessPost = () => {
+    onToggle();
+    setSubscribed(true);
+    router.push("/");
+    toast({
+      title: "Date confirmed",
+      description:
+        userKind === "pisciner"
+          ? "Please look out for email/discord dm for slot confirmation."
+          : "Subscription done",
+      status: "success",
+      position: "top-right",
+      duration: 5000,
+      isClosable: false,
+    });
+  };
+
+  const errorToast = () => {
+    toast({
+      title: "Wo mei KKK",
+      status: "error",
+      position: "top-right",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   const handleUpload = () => {
     if (userKind === "pisciner") {
-      const body = {
-        dateTime: finalDate,
-        isDefault: Boolean(mode),
-        teamId: "someid",
-        customReason: reason,
-      };
-      axios
-        .post("/api/rush-timeslot?collection=rush-timetables", body)
-        .then(() => {
-          onToggle();
-          setSubscribed(true);
-          successToast();
-        })
-        .catch((error) => {
-          if (error.response) {
-            console.log(error.response);
-            errorToast();
-          }
+      if (selectedCadetDate !== -1 && inputValue === "") {
+        toast({
+          title: "Wo mei KKK",
+          description: "Wai u wan custom timee",
+          status: "error",
+          position: "top-right",
+          duration: 5000,
+          isClosable: true,
         });
-    } else if (student === "cadet") {
+      } else {
+        const body = {
+          dateTime: finalDate,
+          isDefault: Boolean(mode),
+          teamId: "someid",
+          customReason: reason,
+        };
+        axios
+          .post("/api/rush-timeslot?collection=rush-timetables", body)
+          .then(() => {
+            console.log("CUSTOM", selectedCadetDate);
+            if (selectedCadetDate !== -1) {
+              const bookSlot = {
+                dateTime: finalDate,
+              };
+              axios
+                .patch(
+                  "/api/rush-timeslot?collection=rush-timetables",
+                  bookSlot,
+                )
+                .then(() => {
+                  console.log("THEN");
+                })
+                .catch((error) => {
+                  console.log("ERROR");
+                });
+            }
+
+            onSuccessPost();
+          })
+          .catch((error) => {
+            if (error.response) {
+              console.log(error.response);
+              errorToast();
+            }
+          });
+      }
+    } else if (userKind === "cadet") {
       const body = {
         dateTime: finalDate,
         evaluator: "winna",
@@ -150,9 +189,7 @@ export default function TimeSlotPicker({ student }: { student: string }) {
       axios
         .post("/api/rush-timeslot?collection=cadet-slot", body)
         .then(() => {
-          onToggle();
-          setSubscribed(true);
-          successToast();
+          onSuccessPost();
         })
         .catch((error) => {
           if (error.response) {
@@ -164,6 +201,14 @@ export default function TimeSlotPicker({ student }: { student: string }) {
 
   return (
     <div>
+      <div className="w-full flex items-center justify-center mt-20">
+        <CountdownTimer
+          targetDate={new Date().setDate(
+            new Date().getDate() + daysUntilMonday,
+          )}
+          status="Ongoing"
+        />
+      </div>
       <Collapse in={isOpen} animateOpacity className="w-full h-full">
         <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
           <h2>Pick a timeslot for your team rush evaluation</h2>
@@ -176,6 +221,7 @@ export default function TimeSlotPicker({ student }: { student: string }) {
                 cadetTimeSlots={cadetTimeSlots}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
+                setSelectedCadetDate={setSelectedCadetDate}
               />
             </div>
             <Box
@@ -192,11 +238,15 @@ export default function TimeSlotPicker({ student }: { student: string }) {
             </Box>
             <CustomTimeSlots
               student={userKind}
-              cadetTimeSlots={cadetTimeSlots}
+              cadetCustomSlots={cadetCustomSlots}
               setFinalDate={setFinalDate}
               setReason={setReason}
               setMode={setMode}
               setSelectedDate={setSelectedDate}
+              selectedCadetDate={selectedCadetDate}
+              setSelectedCadetDate={setSelectedCadetDate}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
             />
           </div>
           <Collapse
