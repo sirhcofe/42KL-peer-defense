@@ -54,14 +54,14 @@ function ExtCircumModal({
   );
 }
 
-function CustomTimeButton({
-  finalDate,
+function CustomTimeSlots({
+  student,
   setFinalDate,
   setReason,
   setMode,
   setSelectedDate,
 }: {
-  finalDate: any;
+  student: string;
   setFinalDate: Dispatch<SetStateAction<Date>>;
   setReason: Dispatch<SetStateAction<String>>;
   setMode: Dispatch<SetStateAction<number>>;
@@ -69,41 +69,69 @@ function CustomTimeButton({
 }) {
   const [isCTOpen, openCTModal, closeCTModal, CTRef] = useModal(false);
   const [isECOpen, openECModal, closeECModal, ECRef] = useModal(false);
+  const [inputValue, setInputValue] = useState("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(event.target.value);
+    setReason(inputValue);
+  };
 
   return (
-    <div className="flex flex-col w-60 items-start justify-center">
-      <button
-        className="w-40 h-20 rounded-lg border-2 border-[#00B9BB]"
-        onClick={() => {
-          openCTModal();
-          setSelectedDate(-1);
-          setFinalDate(null);
-        }}
-      >
-        <p>Custom Time</p>
-      </button>
-      <div className="flex flex-col items-center justify-center py-1">
-        <p className="text-xs">if you have&nbsp;</p>
-        <button onClick={() => openECModal()}>
-          <p className="text-xs underline">extenuating circumstances</p>
-        </button>
-      </div>
-      {isCTOpen && (
-        <CustomTimeModal
-          setter={setFinalDate}
-          reason={setReason}
-          setMode={setMode}
-          isOpen={isCTOpen}
-          closeModal={closeCTModal}
-          buttonRef={CTRef}
-        />
+    <div
+      className={`flex flex-col w-60 justify-center ${
+        student === "pisciner" ? " items-start" : "items-center"
+      }`}
+    >
+      {student === "pisciner" && (
+        <>
+          <h3>Custom Time Slots</h3>
+          <div className="flex items-start justify-center py-1">
+            <p className="text-xs">if you have&nbsp;</p>
+            <button onClick={() => openECModal()}>
+              <p className="text-xs underline">extenuating circumstances</p>
+            </button>
+          </div>
+          <div className="h-[176px] w-full flex item-center my-4">
+            <p className="flex items-center">No custom timeslots found :(</p>
+          </div>
+          <textarea
+            value={inputValue}
+            onChange={handleChange}
+            placeholder="Reason for requiring a custom time slot."
+            className="w-full rounded-lg py-1 px-2 outline-none border-2 text-sm"
+          />
+
+          {isECOpen && (
+            <ExtCircumModal
+              isOpen={isECOpen}
+              closeModal={closeECModal}
+              buttonRef={ECRef}
+            />
+          )}
+        </>
       )}
-      {isECOpen && (
-        <ExtCircumModal
-          isOpen={isECOpen}
-          closeModal={closeECModal}
-          buttonRef={ECRef}
-        />
+      {student === "cadet" && (
+        <>
+          <button
+            className="w-40 h-20 rounded-lg border-2 border-[#00B9BB]"
+            onClick={() => {
+              openCTModal();
+              setSelectedDate(-1);
+              setFinalDate(null);
+            }}
+          >
+            <p>Custom Time</p>
+          </button>
+          {isCTOpen && (
+            <CustomTimeModal
+              setter={setFinalDate}
+              setMode={setMode}
+              isOpen={isCTOpen}
+              closeModal={closeCTModal}
+              buttonRef={CTRef}
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -111,11 +139,13 @@ function CustomTimeButton({
 
 function PickTime({
   data,
+  student,
   timeSlots,
   selectedDate,
   setSelectedDate,
 }: {
   data: any[];
+  student: string;
   timeSlots: any[];
   selectedDate: number;
   setSelectedDate: Dispatch<SetStateAction<number>>;
@@ -129,7 +159,7 @@ function PickTime({
 
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="grid grid-cols-2 gap-4">
+      <div className={`grid grid-cols-2 gap-4`}>
         {timeSlots.map((slot, i) => {
           const cNames = commonClassNames(i, slot.availability);
           return (
@@ -154,7 +184,7 @@ function PickTime({
   );
 }
 
-export default function TimeSlotPicker() {
+export default function TimeSlotPicker({ student }: { student: string }) {
   const [subscribed, setSubscribed] = useState(false);
   const { isOpen, onToggle } = useDisclosure();
   const [data, setData] = useState<any>([]);
@@ -210,40 +240,44 @@ export default function TimeSlotPicker() {
   }, [selectedDate]);
 
   const handleUpload = () => {
-    const body = {
-      dateTime: finalDate,
-      evaluator: "",
-      isDefault: mode,
-      teamId: "",
-      customReason: reason,
-    };
-    axios
-      .post("/api/rush-timeslot?collection=rush-timetables", body)
-      .then(() => {
-        onToggle();
-        setSubscribed(true);
-        toast({
-          title: "Date confirmed",
-          description:
-            "Please look out for email/discord dm for slot confirmation.",
-          status: "success",
-          position: "top-right",
-          duration: 5000,
-          isClosable: true,
-        });
-      })
-      .catch((error) => {
-        if (error.response) {
+    if (student === "pisciner") {
+      const body = {
+        dateTime: finalDate,
+        evaluator: "winna",
+        isDefault: mode,
+        teamId: "",
+        customReason: reason,
+      };
+      axios
+        .post("/api/rush-timeslot?collection=rush-timetables", body)
+        .then(() => {
+          onToggle();
+          setSubscribed(true);
           toast({
-            title: "Wo mei KKK",
-            description: error.response,
-            status: "error",
+            title: "Date confirmed",
+            description:
+              "Please look out for email/discord dm for slot confirmation.",
+            status: "success",
             position: "top-right",
             duration: 5000,
             isClosable: true,
           });
-        }
-      });
+        })
+        .catch((error) => {
+          if (error.response) {
+            toast({
+              title: "Wo mei KKK",
+              description: error.response,
+              status: "error",
+              position: "top-right",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
+        });
+    } else if (student === "cadet") {
+      console.log("Mode", mode);
+    }
   };
 
   return (
@@ -252,22 +286,29 @@ export default function TimeSlotPicker() {
         <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
           <h2>Pick a timeslot for your team rush evaluation</h2>
           <div className="flex gap-x-8">
-            <PickTime
-              data={data}
-              timeSlots={timeSlots}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-            />
-            <Box position="relative" className="mx-8" padding="4">
-              <Center height={"full"}>
+            <div>
+              <PickTime
+                data={data}
+                student={student}
+                timeSlots={timeSlots}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+              />
+            </div>
+            <Box
+              position="relative"
+              className="flex mx-8 items-center"
+              padding="4"
+            >
+              <Center className="h-full">
                 <Divider orientation="vertical" border="1px solid #00B9BB" />
               </Center>
               <AbsoluteCenter bg="white" px="4">
                 or
               </AbsoluteCenter>
             </Box>
-            <CustomTimeButton
-              finalDate={finalDate}
+            <CustomTimeSlots
+              student={student}
               setFinalDate={setFinalDate}
               setReason={setReason}
               setMode={setMode}
@@ -306,7 +347,7 @@ export default function TimeSlotPicker() {
           </Collapse>
         </div>
       </Collapse>
-      {subscribed && (
+      {subscribed && student === "pisciner" && (
         <div className="w-full h-full flex flex-col items-center justify-center mt-40">
           <h2>You have successfully registered for a defense!</h2>
         </div>

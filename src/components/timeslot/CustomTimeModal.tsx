@@ -108,7 +108,6 @@ function DatePick({
 
 interface CustomTimeModalProps {
   setter: Dispatch<SetStateAction<Date>>;
-  reason: Dispatch<SetStateAction<String>>;
   setMode: Dispatch<SetStateAction<number>>;
   isOpen: boolean;
   closeModal: () => void;
@@ -117,7 +116,6 @@ interface CustomTimeModalProps {
 
 export default function CustomTimeModal({
   setter,
-  reason,
   setMode,
   isOpen,
   closeModal,
@@ -127,7 +125,7 @@ export default function CustomTimeModal({
   const [selectedTime, setSelectedTime] = useState(-1);
   const [isTimeOpen, setIsTimeOpen] = useState(false);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+
   const toast = useToast();
 
   const currentDate = new Date();
@@ -139,40 +137,24 @@ export default function CustomTimeModal({
   const nextMondayDate = nextMonday.getDate();
 
   const handleSetTime = () => {
-    if (inputValue === "") {
-      toast({
-        title: "Wo mei K",
-        description: "Please input a reason.",
-        status: "error",
-        position: "top-right",
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      var finalDate = new Date(nextMonday);
-      finalDate.setDate(finalDate.getDate() + selectedDate);
-      const finalTime = time[selectedTime].time.split(" ");
-      finalDate.setHours(Number(finalTime[0]));
-      finalDate.setMinutes(Number(finalTime[1]));
-      finalDate.setSeconds(0);
-      finalDate.setMilliseconds(0);
-      setter(finalDate);
-      setMode(0);
-      reason(inputValue);
-      toast({
-        title: "Set time successful",
-        description: "burubiu burubiu",
-        status: "success",
-        position: "top-right",
-        duration: 5000,
-        isClosable: true,
-      });
-      closeModal();
-    }
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(event.target.value);
+    var finalDate = new Date(nextMonday);
+    finalDate.setDate(finalDate.getDate() + selectedDate);
+    const finalTime = time[selectedTime].time.split(" ");
+    finalDate.setHours(Number(finalTime[0]));
+    finalDate.setMinutes(Number(finalTime[1]));
+    finalDate.setSeconds(0);
+    finalDate.setMilliseconds(0);
+    setter(finalDate);
+    setMode(0);
+    toast({
+      title: "Set time successful",
+      description: "burubiu burubiu",
+      status: "success",
+      position: "top-right",
+      duration: 5000,
+      isClosable: true,
+    });
+    closeModal();
   };
 
   useEffect(() => {
@@ -210,12 +192,6 @@ export default function CustomTimeModal({
             <Collapse in={isReasonOpen} animateOpacity className="w-[350px]">
               <div className="w-full flex flex-col items-center gap-y-4">
                 <Divider orientation="horizontal" border="1px solid #00B9BB" />
-                <textarea
-                  value={inputValue}
-                  onChange={handleChange}
-                  placeholder="Reason for requiring a custom time slot."
-                  className="w-full rounded-xl py-2 px-4 outline-none border-2"
-                />
                 <button
                   className="w-60 rounded-full bg-[#00B9BB] py-2"
                   onClick={() => handleSetTime()}
