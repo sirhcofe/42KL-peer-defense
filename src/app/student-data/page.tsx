@@ -14,7 +14,7 @@ const Banana = () => {
         justifyContent={"center"}
         alignItems={"center"}
         w={"100vw"}
-        h={"100vw"}
+        h={"100vh"}
       >
         <Heading as={"h1"}> Page is loading please wait.</Heading>
       </Box>
@@ -24,7 +24,7 @@ const Banana = () => {
       display={"flex"}
       flexDirection={"row"}
       justifyContent={"space-around"}
-      alignItems={"center"}
+      // alignItems={"center"}
       gap={"32px"}
     >
       <CriticalDays />
