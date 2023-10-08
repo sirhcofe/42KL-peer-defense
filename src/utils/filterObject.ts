@@ -2,6 +2,10 @@ export const filterObject = (obj, ...args) => ({
   ...args.reduce((res, key) => ({ ...res, [key]: obj[key] }), {}),
 });
 
+export const filterArrayObject = (arrObj, ...args) => {
+  return arrObj.map((data) => filterObject(data, ...args));
+};
+
 export function convertDateToDays(dateString) {
   let dateParts = dateString.split("/");
   let day = parseInt(dateParts[0], 10);

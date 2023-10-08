@@ -12,11 +12,13 @@ import {
   Heading,
   Text,
   Button,
+  Input,
+  InputLeftAddon,
+  InputGroup,
 } from "@chakra-ui/react";
 import { relative } from "path";
 import React from "react";
 import studentData from "src/student-data/sample.json";
-
 let criticalDays = studentData
   .filter((student) => {
     return (
@@ -31,25 +33,27 @@ let sinceLastSubmission = studentData
   })
   .sort((a, b) => b["since_last_submission"] - a["since_last_submission"]);
 
-function convertDateToDays(dateString) {
-  let dateParts = dateString.split("/");
-  let day = parseInt(dateParts[0], 10);
-  let month = parseInt(dateParts[1], 10) - 1;
-  let year = parseInt(dateParts[2], 10);
-  let inputDate = new Date(year, month, day);
-  let today = new Date();
-  let timeDifference = today.getTime() - inputDate.getTime();
-  let daysSinceToday = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-  return daysSinceToday;
-}
-
 const StudentTable = () => {
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
       <Heading ml={"16px"}>Students with Critical Days</Heading>
-      <Text ml={"16px"} alignSelf={"flex-start"}>
-        Total Students: {criticalDays.length}
-      </Text>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
+        <InputGroup>
+          <InputLeftAddon>Filter</InputLeftAddon>
+          <Input
+            htmlSize={4}
+            width="auto"
+            type="number"
+            placeholder="blackhole days"
+          />
+        </InputGroup>
+
+        <Text>Total Students: {criticalDays.length}</Text>
+      </Box>
       <Button>Download</Button>
       <TableContainer
         maxHeight={"420px"}
