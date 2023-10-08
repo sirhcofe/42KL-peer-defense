@@ -77,11 +77,7 @@ function CustomTimeSlots({
   };
 
   return (
-    <div
-      className={`flex flex-col w-60 justify-center ${
-        student === "pisciner" ? " items-start" : "items-center"
-      }`}
-    >
+    <div className={`flex flex-col w-60 justify-center items-start`}>
       {student === "pisciner" && (
         <>
           <h3>Custom Time Slots</h3>
@@ -141,12 +137,14 @@ function PickTime({
   data,
   student,
   timeSlots,
+  cadetTimeSlots,
   selectedDate,
   setSelectedDate,
 }: {
   data: any[];
   student: string;
   timeSlots: any[];
+  cadetTimeSlots: any[];
   selectedDate: number;
   setSelectedDate: Dispatch<SetStateAction<number>>;
 }) {
@@ -160,25 +158,50 @@ function PickTime({
   return (
     <div className="flex h-full items-center justify-center">
       <div className={`grid grid-cols-2 gap-4`}>
-        {timeSlots.map((slot, i) => {
-          const cNames = commonClassNames(i, slot.availability);
-          return (
-            <button
-              key={i}
-              className={`flex flex-col w-28 h-20 rounded-lg border-2 items-center justify-center ${
-                slot.availability === 0 && "bg-gray-300 border-gray-300"
-              } ${cNames.border}`}
-              onClick={
-                slot.availability !== 0 ? () => setSelectedDate(i) : () => null
-              }
-            >
-              <h3 className={`${cNames.text}`}>{slot.time}</h3>
-              <p className={`text-xs ${cNames.text}`}>
-                Availability: {slot.availability}
-              </p>
-            </button>
-          );
-        })}
+        {student === "pisciner" &&
+          timeSlots.map((slot, i) => {
+            const cNames = commonClassNames(i, slot.availability);
+            return (
+              <button
+                key={i}
+                className={`flex flex-col w-28 h-20 rounded-lg border-2 items-center justify-center ${
+                  slot.availability === 0 && "bg-gray-300 border-gray-300"
+                } ${cNames.border}`}
+                onClick={
+                  slot.availability !== 0
+                    ? () => setSelectedDate(i)
+                    : () => null
+                }
+              >
+                <h3 className={`${cNames.text}`}>{slot.time}</h3>
+                <p className={`text-xs ${cNames.text}`}>
+                  Availability: {slot.availability}
+                </p>
+              </button>
+            );
+          })}
+        {student === "cadet" &&
+          cadetTimeSlots.map((slot, i) => {
+            const cNames = commonClassNames(i, slot.availability);
+            return (
+              <button
+                key={i}
+                className={`flex flex-col w-28 h-20 rounded-lg border-2 items-center justify-center ${
+                  slot.availability === 0 && "bg-gray-300 border-gray-300"
+                } ${cNames.border}`}
+                onClick={
+                  slot.availability !== 0
+                    ? () => setSelectedDate(i)
+                    : () => null
+                }
+              >
+                <h3 className={`${cNames.text}`}>{slot.time}</h3>
+                <p className={`text-xs ${cNames.text}`}>
+                  Availability: {slot.availability}
+                </p>
+              </button>
+            );
+          })}
       </div>
     </div>
   );
@@ -187,8 +210,10 @@ function PickTime({
 export default function TimeSlotPicker({ student }: { student: string }) {
   const [subscribed, setSubscribed] = useState(false);
   const { isOpen, onToggle } = useDisclosure();
-  const [data, setData] = useState<any>([]);
+  const [piscineData, setPiscineData] = useState<any>([]);
+  const [cadetData, setCadetData] = useState<any>([]);
   const [timeSlots, setTimeSlots] = useState<any>([]);
+  const [cadetTimeSlots, setCadetTimeSlots] = useState<any>([]);
   const [selectedDate, setSelectedDate] = useState(-1);
   const [finalDate, setFinalDate] = useState(null);
   const [mode, setMode] = useState(-1);
@@ -204,16 +229,15 @@ export default function TimeSlotPicker({ student }: { student: string }) {
   const toast = useToast();
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchPiscineData() {
       try {
         const res = await fetch(
           "http://localhost:3000/api/rush-timeslot?collection=rush-timetables",
         );
         if (res.ok) {
           const jsonData = await res.json();
-          setData(jsonData.data);
+          setPiscineData(jsonData.data);
           setTimeSlots(jsonData.timeSlots);
-          onToggle();
         } else {
           console.error("Failed to fetch data");
         }
@@ -222,7 +246,26 @@ export default function TimeSlotPicker({ student }: { student: string }) {
       }
     }
 
-    fetchData();
+    async function fetchCadetData() {
+      try {
+        const res = await fetch(
+          "http://localhost:3000/api/rush-timeslot?collection=cadet-slot",
+        );
+        if (res.ok) {
+          const jsonData = await res.json();
+          setCadetData(jsonData.data);
+          setCadetTimeSlots(jsonData.timeSlots);
+        } else {
+          console.error("Failed to fetch data");
+        }
+      } catch (error) {
+        console.error("Error fetching data from Firestore:", error);
+      }
+    }
+
+    fetchPiscineData();
+    fetchCadetData();
+    onToggle();
   }, []);
 
   useEffect(() => {
@@ -288,9 +331,10 @@ export default function TimeSlotPicker({ student }: { student: string }) {
           <div className="flex gap-x-8">
             <div>
               <PickTime
-                data={data}
+                data={piscineData}
                 student={student}
                 timeSlots={timeSlots}
+                cadetTimeSlots={cadetTimeSlots}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
               />
