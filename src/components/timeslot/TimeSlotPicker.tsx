@@ -1,6 +1,5 @@
 "use client";
 
-import useModal from "@/hooks/useModal";
 import {
   Dispatch,
   RefObject,
@@ -17,122 +16,13 @@ import {
   Collapse,
   useToast,
   useDisclosure,
+  ToastOptions,
 } from "@chakra-ui/react";
 import CustomTimeModal from "./CustomTimeModal";
 import axios from "axios";
 import PickTime from "./PickTime";
-
-interface ExtCircumModalProps {
-  isOpen: boolean;
-  closeModal: () => void;
-  buttonRef: RefObject<HTMLDivElement>;
-}
-
-function ExtCircumModal({
-  isOpen,
-  closeModal,
-  buttonRef,
-}: ExtCircumModalProps) {
-  return (
-    <>
-      {isOpen && (
-        <div className="w-screen h-screen flex items-center justify-center bg-black/75 absolute top-0 left-0">
-          <div
-            className="flex flex-col w-5/6 md:w-3/4 lg:w-1/2 bg-white rounded-3xl py-4 px-10 gap-y-3"
-            ref={buttonRef}
-          >
-            <h2>Sample extenuating circumstances</h2>
-            <p className="text-xs text-gray-500">
-              Extenuating circumstances are only recognized and considered when
-              they meet predetermined criteria. Such criteria may include but
-              are not limited to:
-            </p>
-            <p>1. Let us win plis</p>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function CustomTimeSlots({
-  student,
-  setFinalDate,
-  setReason,
-  setMode,
-  setSelectedDate,
-}: {
-  student: string;
-  setFinalDate: Dispatch<SetStateAction<Date>>;
-  setReason: Dispatch<SetStateAction<String>>;
-  setMode: Dispatch<SetStateAction<number>>;
-  setSelectedDate: Dispatch<SetStateAction<number>>;
-}) {
-  const [isCTOpen, openCTModal, closeCTModal, CTRef] = useModal(false);
-  const [isECOpen, openECModal, closeECModal, ECRef] = useModal(false);
-  const [inputValue, setInputValue] = useState("");
-
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(event.target.value);
-    setReason(inputValue);
-  };
-
-  return (
-    <div className={`flex flex-col w-60 justify-center items-start`}>
-      {student === "pisciner" && (
-        <>
-          <h3>Custom Time Slots</h3>
-          <div className="flex items-start justify-center py-1">
-            <p className="text-xs">if you have&nbsp;</p>
-            <button onClick={() => openECModal()}>
-              <p className="text-xs underline">extenuating circumstances</p>
-            </button>
-          </div>
-          <div className="h-[176px] w-full flex item-center my-4">
-            <p className="flex items-center">No custom timeslots found :(</p>
-          </div>
-          <textarea
-            value={inputValue}
-            onChange={handleChange}
-            placeholder="Reason for requiring a custom time slot."
-            className="w-full rounded-lg py-1 px-2 outline-none border-2 text-sm"
-          />
-
-          {isECOpen && (
-            <ExtCircumModal
-              isOpen={isECOpen}
-              closeModal={closeECModal}
-              buttonRef={ECRef}
-            />
-          )}
-        </>
-      )}
-      {student === "cadet" && (
-        <>
-          <button
-            className="w-40 h-20 rounded-lg border-2 border-[#00B9BB]"
-            onClick={() => {
-              openCTModal();
-              setSelectedDate(-1);
-              setFinalDate(null);
-            }}
-          >
-            <p>Custom Time</p>
-          </button>
-          {isCTOpen && (
-            <CustomTimeModal
-              setter={setFinalDate}
-              setMode={setMode}
-              isOpen={isCTOpen}
-              closeModal={closeCTModal}
-              buttonRef={CTRef}
-            />
-          )}
-        </>
-      )}
-    </div>
-  );
-}
+import CustomTimeSlots from "./CustomTimeSlots";
+import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
 
 export default function TimeSlotPicker({ student }: { student: string }) {
   const [subscribed, setSubscribed] = useState(false);
@@ -146,6 +36,8 @@ export default function TimeSlotPicker({ student }: { student: string }) {
   const [mode, setMode] = useState(-1);
   const [reason, setReason] = useState("");
 
+  const { userKind } = useUserContext();
+
   const currentDate = new Date();
   const currentDayOfWeek = currentDate.getDay();
   const daysUntilMonday = 1 - currentDayOfWeek + 7;
@@ -155,8 +47,30 @@ export default function TimeSlotPicker({ student }: { student: string }) {
 
   const toast = useToast();
 
+  const successToast = () => {
+    toast({
+      title: "Date confirmed",
+      description:
+        "Please look out for email/discord dm for slot confirmation.",
+      status: "success",
+      position: "top-right",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
+  const errorToast = () => {
+    toast({
+      title: "Wo mei KKK",
+      status: "error",
+      position: "top-right",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   useEffect(() => {
-    async function fetchPiscineData() {
+    async function fetchData() {
       try {
         const res = await fetch(
           "http://localhost:3000/api/rush-timeslot?collection=rush-timetables",
@@ -165,6 +79,22 @@ export default function TimeSlotPicker({ student }: { student: string }) {
           const jsonData = await res.json();
           setPiscineData(jsonData.data);
           setTimeSlots(jsonData.timeSlots);
+          try {
+            const res = await fetch(
+              "http://localhost:3000/api/rush-timeslot?collection=cadet-slot",
+            );
+            if (res.ok) {
+              const jsonData = await res.json();
+              console.log("JSON", jsonData);
+              setCadetData(jsonData.data);
+              setCadetTimeSlots(jsonData.result);
+              onToggle();
+            } else {
+              console.error("Failed to fetch data");
+            }
+          } catch (error) {
+            console.error("Error fetching data from Firestore:", error);
+          }
         } else {
           console.error("Failed to fetch data");
         }
@@ -173,26 +103,7 @@ export default function TimeSlotPicker({ student }: { student: string }) {
       }
     }
 
-    async function fetchCadetData() {
-      try {
-        const res = await fetch(
-          "http://localhost:3000/api/rush-timeslot?collection=cadet-slot",
-        );
-        if (res.ok) {
-          const jsonData = await res.json();
-          setCadetData(jsonData.data);
-          setCadetTimeSlots(jsonData.timeSlots);
-        } else {
-          console.error("Failed to fetch data");
-        }
-      } catch (error) {
-        console.error("Error fetching data from Firestore:", error);
-      }
-    }
-
-    fetchPiscineData();
-    fetchCadetData();
-    onToggle();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -210,12 +121,11 @@ export default function TimeSlotPicker({ student }: { student: string }) {
   }, [selectedDate]);
 
   const handleUpload = () => {
-    if (student === "pisciner") {
+    if (userKind === "pisciner") {
       const body = {
         dateTime: finalDate,
-        evaluator: "winna",
-        isDefault: mode,
-        teamId: "",
+        isDefault: Boolean(mode),
+        teamId: "someid",
         customReason: reason,
       };
       axios
@@ -223,35 +133,37 @@ export default function TimeSlotPicker({ student }: { student: string }) {
         .then(() => {
           onToggle();
           setSubscribed(true);
-          toast({
-            title: "Date confirmed",
-            description:
-              "Please look out for email/discord dm for slot confirmation.",
-            status: "success",
-            position: "top-right",
-            duration: 5000,
-            isClosable: true,
-          });
+          successToast();
         })
         .catch((error) => {
           if (error.response) {
-            toast({
-              title: "Wo mei KKK",
-              description: error.response,
-              status: "error",
-              position: "top-right",
-              duration: 5000,
-              isClosable: true,
-            });
+            console.log(error.response);
+            errorToast();
           }
         });
     } else if (student === "cadet") {
-      console.log("Mode", mode);
+      const body = {
+        dateTime: finalDate,
+        evaluator: "winna",
+        isDefault: Boolean(mode),
+      };
+      axios
+        .post("/api/rush-timeslot?collection=cadet-slot", body)
+        .then(() => {
+          onToggle();
+          setSubscribed(true);
+          successToast();
+        })
+        .catch((error) => {
+          if (error.response) {
+            errorToast();
+          }
+        });
     }
   };
 
   return (
-    <>
+    <div>
       <Collapse in={isOpen} animateOpacity className="w-full h-full">
         <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
           <h2>Pick a timeslot for your team rush evaluation</h2>
@@ -259,7 +171,7 @@ export default function TimeSlotPicker({ student }: { student: string }) {
             <div>
               <PickTime
                 data={piscineData}
-                student={student}
+                student={userKind}
                 timeSlots={timeSlots}
                 cadetTimeSlots={cadetTimeSlots}
                 selectedDate={selectedDate}
@@ -279,7 +191,8 @@ export default function TimeSlotPicker({ student }: { student: string }) {
               </AbsoluteCenter>
             </Box>
             <CustomTimeSlots
-              student={student}
+              student={userKind}
+              cadetTimeSlots={cadetTimeSlots}
               setFinalDate={setFinalDate}
               setReason={setReason}
               setMode={setMode}
@@ -318,11 +231,11 @@ export default function TimeSlotPicker({ student }: { student: string }) {
           </Collapse>
         </div>
       </Collapse>
-      {subscribed && student === "pisciner" && (
+      {subscribed && userKind === "pisciner" && (
         <div className="w-full h-full flex flex-col items-center justify-center mt-40">
           <h2>You have successfully registered for a defense!</h2>
         </div>
       )}
-    </>
+    </div>
   );
 }
