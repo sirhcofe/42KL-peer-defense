@@ -13,69 +13,170 @@ export async function GET(req: NextRequest, res: NextResponse) {
     ...doc.data(),
   }));
 
-  let timeSlots = [
-    {
-      time: "10 00",
-      availability: 4,
-    },
-    {
-      time: "11 00",
-      availability: 4,
-    },
-    {
-      time: "14 00",
-      availability: 4,
-    },
-    {
-      time: "15 00",
-      availability: 4,
-    },
-    {
-      time: "16 00",
-      availability: 4,
-    },
-    {
-      time: "17 00",
-      availability: 4,
-    },
-  ];
-
-  data.map((document, i) => {
-    const date = new Date(document.dateTime.seconds * 1000);
-    const hours = date.getHours();
-    const timeString = `${hours < 10 ? "0" : ""}${hours} 00`;
-    timeSlots.map((time, i) => {
-      if (time.time == timeString) {
-        time.availability -= 1;
-      }
+  if (collectionName === "rush-timetables") {
+    let timeSlots = [
+      {
+        time: "10 00",
+        availability: 4,
+      },
+      {
+        time: "11 00",
+        availability: 4,
+      },
+      {
+        time: "14 00",
+        availability: 4,
+      },
+      {
+        time: "15 00",
+        availability: 4,
+      },
+      {
+        time: "16 00",
+        availability: 4,
+      },
+      {
+        time: "17 00",
+        availability: 4,
+      },
+    ];
+    data.map((document, i) => {
+      const date = new Date(document.dateTime.seconds * 1000);
+      const hours = date.getHours();
+      const timeString = `${hours < 10 ? "0" : ""}${hours} 00`;
+      timeSlots.map((time, i) => {
+        if (time.time === timeString && collectionName === "rush-timetables") {
+          time.availability -= 1;
+        }
+      });
     });
-  });
 
-  return Response.json({ data, timeSlots });
+    return Response.json({ data, timeSlots });
+  }
+
+  if (collectionName === "cadet-slot") {
+    let filteredData = data.filter((item) => !item.isDefault);
+
+    const result = [];
+    while (filteredData.length) {
+      console.log("indeex 0", filteredData[0]);
+      const curr = filteredData[0].dateTime;
+
+      const count = filteredData.filter(
+        (data) => data.dateTime.seconds === curr.seconds,
+      ).length;
+      filteredData = filteredData.filter(
+        (data) => data.dateTime.seconds !== curr.seconds,
+      );
+
+      result.push({ dateTime: curr.seconds, count });
+    }
+
+    // const groupedData = filteredData.map((item) => {
+    //   //   const date = new Date(item.dateTime.seconds * 1000);
+    //   console.log("ASHDFASD", item.dateTime.seconds);
+    //   const existingEntry = result.find(
+    //     (entry) => entry.dateTime.seconds === item.dateTime.seconds,
+    //   );
+
+    //   if (existingEntry) {
+    //     existingEntry.count++;
+    //   } else {
+    //     result.push({ time: item.dateTime.seconds, count: 1 });
+    //   }
+    // }, []);
+
+    console.log(result);
+    return Response.json({ data, result });
+  } else {
+    return Response.json({ error: "Failed to add document" }, { status: 500 });
+  }
 }
 
-type AddTimeslotBody = {
+type SelectTimeslotBody = {
   dateTime: Date;
-  evaluator: string;
   isDefault: boolean;
   teamId: string;
   customReason: string;
 };
+
+type CadetSlotBody = {
+  evaluator: string;
+  dateTime: Date;
+  isDefault: boolean;
+};
+
+/**
+ * Handles HTTP POST requests to add a new timeslot document to the specified Firestore collection.
+ * @param req - The Next.js request object.
+ * @param res - The Next.js response object.
+ * @returns A JSON response containing the ID and data of the newly added document, or an error message with a 500 status code if the operation fails.
+ */
+/**
+ * Handles POST requests to add a new timeslot to the "rush-timetables" collection.
+ * @param {NextRequest} req - The Next.js request object.
+ * @param {NextResponse} res - The Next.js response object.
+ * @returns {Promise<void>} - A Promise that resolves when the response is sent.
+ */
 export async function POST(req: NextRequest, res: NextResponse) {
   const collectionName = req.nextUrl.searchParams.get("collection");
-  const data: AddTimeslotBody = await req.json();
 
-  // convert strigify string to Date
-  data.dateTime = new Date(data.dateTime);
-
-  try {
-    const docRef = await addDoc(
-      collection(firestore, collectionName ?? ""),
-      data,
+  let colRef;
+  if (collectionName) colRef = collection(firestore, collectionName);
+  else
+    return Response.json(
+      { error: "Missing param: collection" },
+      { status: 500 },
     );
-    return Response.json({ id: docRef.id, data });
-  } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Failed to add document" }, { status: 500 });
+
+  if (collectionName === "rush-timetables") {
+    const data: SelectTimeslotBody = await req.json();
+
+    if (!data.dateTime || !data.teamId)
+      return Response.json({ error: "Invalid body" }, { status: 500 });
+
+    // convert strigify string to Date
+    data.dateTime = new Date(data.dateTime);
+    try {
+      const docRef = await addDoc(colRef, data);
+      return Response.json({ id: docRef.id, data });
+    } catch (error) {
+      console.error(error);
+      return Response.json(
+        { error: "Failed to add document" },
+        { status: 500 },
+      );
+    }
   }
+
+  if (collectionName === "cadet-slot") {
+    const body: CadetSlotBody = await req.json();
+
+    if (!body.dateTime || !body.evaluator || body.isDefault === null)
+      return Response.json({ error: "Invalid body" }, { status: 500 });
+
+    body.dateTime = new Date(body.dateTime);
+
+    const data = {
+      dateTime: body.dateTime,
+      evaluator: body.evaluator,
+      isDefault: body.isDefault,
+    };
+
+    try {
+      const docRef = await addDoc(colRef, data);
+      return Response.json({
+        message: "Successfully add document",
+        id: docRef.id,
+      });
+    } catch (err) {
+      console.error(err);
+      return Response.json(
+        { error: "Failed to add documemt" },
+        { status: 500 },
+      );
+    }
+  }
+
+  return Response.json({ error: "Invalid collection name" }, { status: 500 });
 }
