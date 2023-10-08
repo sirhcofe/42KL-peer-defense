@@ -51,7 +51,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
     });
   });
 
-  return Response.json({ data, timeSlots });
+  return NextResponse.json({ data, timeSlots });
 }
 
 type SelectTimeslotBody = {

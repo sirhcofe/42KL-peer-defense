@@ -110,6 +110,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
   });
 }
 
-export function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest, res: NextResponse) {
   return Response.json({ message: "API working!" });
 }
