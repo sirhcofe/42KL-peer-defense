@@ -7,6 +7,7 @@ import {
   orderBy,
   writeBatch,
   doc,
+  where,
 } from "firebase/firestore";
 import app from "@/../firebase";
 import { NextRequest, NextResponse } from "next/server";
@@ -111,5 +112,24 @@ export async function POST(req: NextRequest, res: NextResponse) {
 }
 
 export async function GET(req: NextRequest, res: NextResponse) {
+<<<<<<< Updated upstream
   return Response.json({ message: "API working!" });
+=======
+  const searchParams = req.nextUrl.searchParams;
+  const evaluator = searchParams.get("evaluator");
+
+  // const body = await req.json();
+  console.log(evaluator);
+  const q = query(
+    collection(firestore, "rush-timetables"),
+    where("evaluator", "==", evaluator),
+  );
+
+  const snapshot = await getDocs(q);
+  const ret = [];
+  snapshot.forEach((doc) => {
+    ret.push({ ...doc.data(), id: doc.id });
+  });
+  return Response.json(ret);
+>>>>>>> Stashed changes
 }
