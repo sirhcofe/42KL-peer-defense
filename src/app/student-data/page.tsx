@@ -2,7 +2,7 @@
 
 import { Image, Box, Heading } from "@chakra-ui/react";
 import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
-import StudentTable from "@/components/student-data/StudentTable";
+import CriticalDays from "@/components/student-data/CriticalDays";
 import LastSubmission from "@/components/student-data/LastSubmission";
 const Banana = () => {
   const { imageURL, intraData } = useUserContext();
@@ -27,7 +27,7 @@ const Banana = () => {
       alignItems={"center"}
       gap={"32px"}
     >
-      <StudentTable />
+      <CriticalDays />
       <LastSubmission />
     </Box>
   );

@@ -16,18 +16,23 @@ import {
   InputLeftAddon,
   InputGroup,
 } from "@chakra-ui/react";
+
+import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { relative } from "path";
 import React from "react";
 import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
 
 // sort 0 = ascending, 1 = descending
 function filterByDays(data, days, sort) {
-  let filtered = data.filter((student) => {
-    return (
-      student["days_till_blockhole"] < days &&
-      !student["name"].includes("GUEST")
-    );
-  });
+  let filtered = data;
+  if (days !== -1) {
+    filtered = data.filter((student) => {
+      return (
+        student["days_till_blockhole"] <= days &&
+        !student["name"].includes("GUEST")
+      );
+    });
+  }
   if (sort === 1) {
     return filtered.sort(
       (a, b) => b["days_till_blockhole"] - a["days_till_blockhole"],
@@ -39,10 +44,11 @@ function filterByDays(data, days, sort) {
   }
 }
 
-const StudentTable = () => {
+const CriticalDays = () => {
   const [displayList, setDisplayList] = React.useState<
     Record<string, string>[]
   >([]);
+  const [toggle, setToggle] = React.useState<boolean>(true);
   const { criticalDays } = useStudentContext();
   React.useEffect(() => {
     setDisplayList(filterByDays(criticalDays, 30, 0));
@@ -62,6 +68,9 @@ const StudentTable = () => {
             width="auto"
             type="number"
             placeholder="blackhole days"
+            onChange={(e) => {
+              setDisplayList(filterByDays(criticalDays, e.target.value, 0));
+            }}
           />
         </InputGroup>
 
@@ -98,7 +107,17 @@ const StudentTable = () => {
             <Tr>
               <Th>Intra</Th>
               <Th>Full Name</Th>
-              <Th isNumeric>Blackhole Left</Th>
+              <Th
+                isNumeric
+                onClick={() => {
+                  if (!toggle) setDisplayList(filterByDays(displayList, -1, 0));
+                  else setDisplayList(filterByDays(displayList, -1, 1));
+                  setToggle(!toggle);
+                }}
+              >
+                Blackhole Left{" "}
+                {toggle ? <ChevronUpIcon /> : <ChevronDownIcon />}
+              </Th>
               <Th>Mark</Th>
             </Tr>
           </Thead>
@@ -122,4 +141,4 @@ const StudentTable = () => {
   );
 };
 
-export default StudentTable;
+export default CriticalDays;
