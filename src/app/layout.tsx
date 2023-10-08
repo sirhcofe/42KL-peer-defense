@@ -1,11 +1,10 @@
 import "./globals.css";
 import React from "react";
 import type { Metadata } from "next";
+import { Jost } from "next/font/google";
 import ParentProvider from "@/hooks/dataProvider/ParentProvider";
-import { Rubik } from "next/font/google";
-import axios from "axios";
 
-const rubik = Rubik({ subsets: ["latin"] });
+const rubik = Jost({ subsets: ["latin"] });
 
 // axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_HOST_URL}`;
 
@@ -22,10 +21,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={rubik.className + " min-h-screen"}>
-        <div className="w-full p-6 bg-pink-200">
-          <h1>User Role</h1>
+        <div className="w-full p-4 bg-pink-500">
+          <h3>User Role</h3>
         </div>
-        <ParentProvider>{children}</ParentProvider>
+        <ParentProvider>
+          <div className="py-6">{children}</div>
+        </ParentProvider>
       </body>
     </html>
   );
