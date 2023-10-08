@@ -1,5 +1,17 @@
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
-import app from "@/../firebase";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  where,
+  query,
+  getDoc,
+  limit,
+  updateDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
+import app from "@/firebase";
 import { NextRequest, NextResponse } from "next/server";
 
 const firestore = getFirestore(app);
@@ -45,13 +57,39 @@ export async function GET(req: NextRequest, res: NextResponse) {
     const hours = date.getHours();
     const timeString = `${hours < 10 ? "0" : ""}${hours} 00`;
     timeSlots.map((time, i) => {
-      if (time.time == timeString) {
+      if (time.time === timeString) {
         time.availability -= 1;
       }
     });
   });
 
-  return NextResponse.json({ data, timeSlots });
+  const result = [];
+  if (collectionName === "cadet-slot") {
+    const filterData = data.filter((item) => !item.isDefault);
+    let filteredData = filterData.filter((item) => !item.taken);
+
+    while (filteredData.length) {
+      console.log("indeex 0", filteredData[0]);
+      const curr = filteredData[0].dateTime;
+
+      const count = filteredData.filter(
+        (data) => data.dateTime.seconds === curr.seconds,
+      ).length;
+      filteredData = filteredData.filter(
+        (data) => data.dateTime.seconds !== curr.seconds,
+      );
+
+      result.push({ dateTime: curr.seconds, count });
+    }
+  }
+
+  if (collectionName === "rush-timetables") {
+    return Response.json({ data, timeSlots });
+  } else if (collectionName === "cadet-slot") {
+    return Response.json({ data, timeSlots, result });
+  } else {
+    return Response.json({ error: "Failed to add document" }, { status: 500 });
+  }
 }
 
 type SelectTimeslotBody = {
@@ -63,8 +101,7 @@ type SelectTimeslotBody = {
 
 type CadetSlotBody = {
   evaluator: string;
-  day: number;
-  hour: number;
+  dateTime: Date;
   isDefault: boolean;
 };
 
@@ -94,7 +131,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   if (collectionName === "rush-timetables") {
     const data: SelectTimeslotBody = await req.json();
 
-    if (!data.customReason || !data.dateTime || !data.isDefault || !data.teamId)
+    if (!data.dateTime || !data.teamId)
       return Response.json({ error: "Invalid body" }, { status: 500 });
 
     // convert strigify string to Date
@@ -114,13 +151,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
   if (collectionName === "cadet-slot") {
     const body: CadetSlotBody = await req.json();
 
-    if (!body.day || !body.hour || !body.evaluator || body.isDefault === null)
+    if (!body.dateTime || !body.evaluator || body.isDefault === null)
       return Response.json({ error: "Invalid body" }, { status: 500 });
 
-    const dateTime = new Date(2023, 10, body.day, body.hour);
+    body.dateTime = new Date(body.dateTime);
 
     const data = {
-      dateTime,
+      dateTime: body.dateTime,
       evaluator: body.evaluator,
       isDefault: body.isDefault,
     };
@@ -141,4 +178,49 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   return Response.json({ error: "Invalid collection name" }, { status: 500 });
+}
+
+export async function PATCH(req: NextRequest, res: NextResponse) {
+  const collectionName = req.nextUrl.searchParams.get("collection");
+  const body = await req.json();
+
+  let colRef;
+  if (collectionName) colRef = collection(firestore, collectionName);
+  else
+    return Response.json(
+      { error: "Missing param: collection" },
+      { status: 500 },
+    );
+
+  console.log("DATEEEEE", Date.parse(body.dateTime) / 1000);
+  try {
+    const q = query(
+      colRef,
+      where(
+        "dateTime",
+        "==",
+        Timestamp.fromDate(new Date(body.dateTime.seconds * 1000)),
+      ),
+      where("taken", "==", false),
+      limit(1),
+    );
+    const docs = await getDocs(q);
+
+    console.log("DOCS", docs);
+
+    let docId: any;
+
+    docs.forEach((doc) => {
+      docId = doc.id;
+    });
+
+    console.log("INDEX", docId);
+
+    const docRef = doc(firestore, collectionName, docId);
+    await updateDoc(docRef, {
+      taken: true,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 }

@@ -7,6 +7,8 @@ import { Topbar } from "@/components/layout/Topbar";
 
 const rubik = Jost({ subsets: ["latin"] });
 
+// axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_HOST_URL}`;
+
 export const metadata: Metadata = {
   title: "42MY Student Management",
   description: "A platform for BOCALs to better manage student at 42MY",
