@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import queriedData from "src/student-data/sample.json";
+// import queriedData from "@/public/sample.json";
 import { filterArrayObject } from "@/utils/filterObject";
-
+import axios from "axios";
 type StudentDataT = {
   fullStudentData: StudentsT[];
   setFullStudentData: (value: StudentsT[]) => void;
@@ -27,29 +27,36 @@ export const StudentDataProvider = ({
   const [lastSubmission, setLastSubmisison] = React.useState<StudentsT[]>([]);
   React.useEffect(() => {
     try {
-      if (queriedData.length > 0) {
-        setFullStudentData(queriedData);
-        queriedData.map;
-        setCriticalDays(
-          filterArrayObject(
-            queriedData,
-            "intra_id",
-            "name",
-            "days_till_blockhole",
-            "seen",
-          ).sort((a, b) => a["days_till_blockhole"] - b["days_till_blockhole"]),
-        );
-        setLastSubmisison(
-          filterArrayObject(
-            queriedData,
-            "intra_id",
-            "name",
-            "days_till_blockhole",
-            "since_last_submission",
-            "seen",
-          ).sort((a, b) => a["days_till_blockhole"] - b["days_till_blockhole"]),
-        );
-      }
+      axios.get("/api/read-json").then((res) => {
+        const queriedData = JSON.parse(res.data);
+        if (queriedData.length > 0) {
+          setFullStudentData(queriedData);
+          queriedData.map;
+          setCriticalDays(
+            filterArrayObject(
+              queriedData,
+              "intra_id",
+              "name",
+              "days_till_blockhole",
+              "seen",
+            ).sort(
+              (a, b) => a["days_till_blockhole"] - b["days_till_blockhole"],
+            ),
+          );
+          setLastSubmisison(
+            filterArrayObject(
+              queriedData,
+              "intra_id",
+              "name",
+              "days_till_blockhole",
+              "since_last_submission",
+              "seen",
+            ).sort(
+              (a, b) => a["days_till_blockhole"] - b["days_till_blockhole"],
+            ),
+          );
+        }
+      });
     } catch (e) {
       console.log("Error in student data provider.");
     }

@@ -15,32 +15,46 @@ import {
 } from "@chakra-ui/react";
 import { relative } from "path";
 import React from "react";
-import studentData from "src/student-data/sample.json";
+import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
 
-let sinceLastSubmission = studentData
-  .filter((student) => {
-    return student["since_last_submission"] >= 90;
-  })
-  .sort((a, b) => b["since_last_submission"] - a["since_last_submission"]);
-
-function convertDateToDays(dateString) {
-  let dateParts = dateString.split("/");
-  let day = parseInt(dateParts[0], 10);
-  let month = parseInt(dateParts[1], 10) - 1;
-  let year = parseInt(dateParts[2], 10);
-  let inputDate = new Date(year, month, day);
-  let today = new Date();
-  let timeDifference = today.getTime() - inputDate.getTime();
-  let daysSinceToday = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-  return daysSinceToday;
+// sort 0 = ascending, 1 = descending
+// days can be -1 to prevent filtering
+function filterByDays(data, days, sort) {
+  let filtered = data;
+  if (days !== -1) {
+    filtered = data.filter((student) => {
+      return (
+        student["since_last_submission"] >= days &&
+        !student["name"].includes("GUEST")
+      );
+    });
+  }
+  if (sort === 1) {
+    return filtered.sort(
+      (a, b) => b["since_last_submission"] - a["since_last_submission"],
+    );
+  } else {
+    return filtered.sort(
+      (a, b) => a["since_last_submission"] - b["since_last_submission"],
+    );
+  }
 }
 
 const LastSubmission = () => {
+  const [displayList, setDisplayList] = React.useState<
+    Record<string, string>[]
+  >([]);
+  const [toggle, setToggle] = React.useState<boolean>(true);
+  const { lastSubmission } = useStudentContext();
+  React.useEffect(() => {
+    if (lastSubmission.length > 0)
+      setDisplayList(filterByDays(lastSubmission, 30, 0));
+  }, []);
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
       <Heading ml={"16px"}>Since Last Project Submission</Heading>
       <Text ml={"16px"} alignSelf={"flex-start"}>
-        Total Students: {sinceLastSubmission.length}
+        Total Students: {displayList.length}
       </Text>
       <Button>Download</Button>
       <TableContainer
@@ -79,7 +93,7 @@ const LastSubmission = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {sinceLastSubmission.map((student, i) => {
+            {displayList.map((student, i) => {
               return (
                 <Tr key={i}>
                   <Td>{student["intra_id"]}</Td>

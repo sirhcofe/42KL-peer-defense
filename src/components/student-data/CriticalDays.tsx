@@ -23,6 +23,7 @@ import React from "react";
 import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
 
 // sort 0 = ascending, 1 = descending
+// days can be -1 to prevent filtering
 function filterByDays(data, days, sort) {
   let filtered = data;
   if (days !== -1) {
@@ -51,7 +52,8 @@ const CriticalDays = () => {
   const [toggle, setToggle] = React.useState<boolean>(true);
   const { criticalDays } = useStudentContext();
   React.useEffect(() => {
-    setDisplayList(filterByDays(criticalDays, 30, 0));
+    if (criticalDays.length > 0)
+      setDisplayList(filterByDays(criticalDays, 30, 0));
   }, []);
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
