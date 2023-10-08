@@ -12,14 +12,18 @@ import {
   Heading,
   Text,
   Button,
+  InputGroup,
+  InputLeftAddon,
+  Input,
 } from "@chakra-ui/react";
-import { relative } from "path";
 import React from "react";
 import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
+import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 
 // sort 0 = ascending, 1 = descending
 // days can be -1 to prevent filtering
-function filterByDays(data, days, sort) {
+function filterByDays(data, days, sort, type) {
+  let field = ["since_last_submission", "days_till_blockhole"];
   let filtered = data;
   if (days !== -1) {
     filtered = data.filter((student) => {
@@ -29,14 +33,10 @@ function filterByDays(data, days, sort) {
       );
     });
   }
-  if (sort === 1) {
-    return filtered.sort(
-      (a, b) => b["since_last_submission"] - a["since_last_submission"],
-    );
+  if (sort) {
+    return filtered.sort((a, b) => b[field[type]] - a[field[type]]);
   } else {
-    return filtered.sort(
-      (a, b) => a["since_last_submission"] - b["since_last_submission"],
-    );
+    return filtered.sort((a, b) => a[field[type]] - b[field[type]]);
   }
 }
 
@@ -45,17 +45,41 @@ const LastSubmission = () => {
     Record<string, string>[]
   >([]);
   const [toggle, setToggle] = React.useState<boolean>(true);
-  const { lastSubmission } = useStudentContext();
+  const [whichToggle, setWhichToggle] = React.useState<number>(0);
+  const [days, setDays] = React.useState<number>(30);
+  const { lastSubmission, setLastSubmisison } = useStudentContext();
+
   React.useEffect(() => {
     if (lastSubmission.length > 0)
-      setDisplayList(filterByDays(lastSubmission, 30, 0));
-  }, []);
+      setDisplayList(filterByDays(lastSubmission, days, toggle, whichToggle));
+  }, [lastSubmission, days, toggle, whichToggle]);
+
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
       <Heading ml={"16px"}>Since Last Project Submission</Heading>
-      <Text ml={"16px"} alignSelf={"flex-start"}>
-        Total Students: {displayList.length}
-      </Text>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
+        <Text>Total Students: {displayList.length}</Text>
+        <Box display={"flex"} alignItems={"left"} gap="24px">
+          <InputGroup>
+            <InputLeftAddon>Filter</InputLeftAddon>
+            <Input
+              htmlSize={4}
+              width="auto"
+              type="number"
+              placeholder="last submission"
+              onChange={(e) => {
+                if (e.target.value === "" || Number(e.target.value) <= 0)
+                  setDays(30);
+                else setDays(Number(e.target.value));
+              }}
+            />
+          </InputGroup>
+        </Box>
+      </Box>
       <Button>Download</Button>
       <TableContainer
         maxHeight={"420px"}
@@ -87,8 +111,34 @@ const LastSubmission = () => {
             <Tr>
               <Th>Intra</Th>
               <Th>Full Name</Th>
-              <Th isNumeric>Blackhole Left</Th>
-              <Th isNumeric>Since Last Submission</Th>
+              <Th
+                isNumeric
+                onClick={() => {
+                  setToggle(!toggle);
+                  setWhichToggle(1);
+                }}
+              >
+                Blackhole Left
+                {toggle && whichToggle === 1 ? (
+                  <ChevronUpIcon />
+                ) : (
+                  <ChevronDownIcon />
+                )}
+              </Th>
+              <Th
+                isNumeric
+                onClick={() => {
+                  setToggle(!toggle);
+                  setWhichToggle(0);
+                }}
+              >
+                Since Last Submission
+                {toggle && whichToggle === 0 ? (
+                  <ChevronUpIcon />
+                ) : (
+                  <ChevronDownIcon />
+                )}
+              </Th>
               <Th>Mark</Th>
             </Tr>
           </Thead>
@@ -101,7 +151,15 @@ const LastSubmission = () => {
                   <Td isNumeric>{student["days_till_blockhole"]}</Td>
                   <Td isNumeric>{student["since_last_submission"]}</Td>
                   <Td>
-                    <Button />
+                    <Button
+                      onClick={() => {
+                        setLastSubmisison(
+                          lastSubmission.filter((data) => {
+                            return data["intra_id"] !== student["intra_id"];
+                          }),
+                        );
+                      }}
+                    />
                   </Td>
                 </Tr>
               );

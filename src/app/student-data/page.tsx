@@ -25,6 +25,7 @@ const Banana = () => {
       flexDirection={"row"}
       justifyContent={"space-around"}
       // alignItems={"center"}
+      marginTop={"80px"}
       gap={"32px"}
     >
       <CriticalDays />

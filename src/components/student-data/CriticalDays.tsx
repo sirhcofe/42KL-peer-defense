@@ -34,7 +34,7 @@ function filterByDays(data, days, sort) {
       );
     });
   }
-  if (sort === 1) {
+  if (!sort) {
     return filtered.sort(
       (a, b) => b["days_till_blockhole"] - a["days_till_blockhole"],
     );
@@ -50,11 +50,14 @@ const CriticalDays = () => {
     Record<string, string>[]
   >([]);
   const [toggle, setToggle] = React.useState<boolean>(true);
-  const { criticalDays } = useStudentContext();
+  const [days, setDays] = React.useState<number>(30);
+  const { criticalDays, setCriticalDays } = useStudentContext();
+
   React.useEffect(() => {
     if (criticalDays.length > 0)
-      setDisplayList(filterByDays(criticalDays, 30, 0));
-  }, []);
+      setDisplayList(filterByDays(criticalDays, days, toggle));
+  }, [criticalDays, days, toggle]);
+
   return (
     <Box display={"flex"} flexDirection={"column"} gap="32px">
       <Heading ml={"16px"}>Students with Critical Days</Heading>
@@ -63,20 +66,23 @@ const CriticalDays = () => {
         justifyContent={"space-between"}
         alignItems={"center"}
       >
-        <InputGroup>
-          <InputLeftAddon>Filter</InputLeftAddon>
-          <Input
-            htmlSize={4}
-            width="auto"
-            type="number"
-            placeholder="blackhole days"
-            onChange={(e) => {
-              setDisplayList(filterByDays(criticalDays, e.target.value, 0));
-            }}
-          />
-        </InputGroup>
-
         <Text>Total Students: {displayList.length}</Text>
+        <Box>
+          <InputGroup>
+            <InputLeftAddon>Filter</InputLeftAddon>
+            <Input
+              htmlSize={4}
+              width="auto"
+              type="number"
+              placeholder="blackhole days"
+              onChange={(e) => {
+                if (e.target.value === "" || Number(e.target.value) <= 0)
+                  setDays(30);
+                else setDays(Number(e.target.value));
+              }}
+            />
+          </InputGroup>
+        </Box>
       </Box>
       <Button>Download</Button>
       <TableContainer
@@ -112,8 +118,6 @@ const CriticalDays = () => {
               <Th
                 isNumeric
                 onClick={() => {
-                  if (!toggle) setDisplayList(filterByDays(displayList, -1, 0));
-                  else setDisplayList(filterByDays(displayList, -1, 1));
                   setToggle(!toggle);
                 }}
               >
@@ -131,7 +135,15 @@ const CriticalDays = () => {
                   <Td>{student["name"]}</Td>
                   <Td isNumeric>{student["days_till_blockhole"]}</Td>
                   <Td>
-                    <Button />
+                    <Button
+                      onClick={() => {
+                        setCriticalDays(
+                          criticalDays.filter((data) => {
+                            return data["intra_id"] !== student["intra_id"];
+                          }),
+                        );
+                      }}
+                    />
                   </Td>
                 </Tr>
               );
