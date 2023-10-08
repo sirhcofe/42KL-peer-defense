@@ -10,7 +10,7 @@ type UserDataT = {
   setAccessToken: (data: string) => void;
   intraData: IntraDataT;
   setIntraData: (data: IntraDataT) => void;
-  userKind: string;
+  userKind: "cadet" | "pisciner" | "bocal";
   setUserKind: (data: string) => void;
   intraId: string;
   setIntraId: (value: string) => void;
@@ -45,6 +45,7 @@ export const UserDataProvider = ({
         setIntraId(data.login);
         setDisplayName(data.displayname);
         setImageURL(data.image?.versions?.medium);
+        setUserKind("cadet");
       });
     });
   }, []);
