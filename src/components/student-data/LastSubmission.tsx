@@ -2,11 +2,9 @@ import {
   Table,
   Thead,
   Tbody,
-  Tfoot,
   Tr,
   Th,
   Td,
-  TableCaption,
   TableContainer,
   Box,
   Heading,
@@ -19,6 +17,7 @@ import {
 import React from "react";
 import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { convertDownload } from "@/utils/filterObject";
 
 // sort 0 = ascending, 1 = descending
 // days can be -1 to prevent filtering
@@ -80,7 +79,13 @@ const LastSubmission = () => {
           </InputGroup>
         </Box>
       </Box>
-      <Button>Download</Button>
+      <Button
+        onClick={() => {
+          convertDownload(displayList);
+        }}
+      >
+        Download
+      </Button>
       <TableContainer
         maxHeight={"420px"}
         overflowY={"scroll"}
