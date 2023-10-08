@@ -12,8 +12,6 @@ export const MembersNote = ({ members }: MembersNoteProps) => {
     formState: { errors },
   } = useFormContext<FormValue>();
 
-  console.log(errors);
-
   return members.map((member, index) => (
     <div key={index} className="mb-4 border rounded p-4">
       <h3 className="mb-2">

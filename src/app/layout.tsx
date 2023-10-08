@@ -24,7 +24,7 @@ export default function RootLayout({
       <ParentProvider>
         <body className={rubik.className + " min-h-screen"}>
           <Topbar />
-          <div className="py-6">{children}</div>
+          <div className="mt-20 py-6">{children}</div>
         </body>
       </ParentProvider>
     </html>
