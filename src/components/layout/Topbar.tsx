@@ -3,10 +3,10 @@ import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
 import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import React from "react";
-
+import { UserKindT } from "@/hooks/dataProvider/UserDataProvider";
 export const Topbar = () => {
   const { displayName, intraId, userKind, setUserKind } = useUserContext();
-
+  const kind: UserKindT[] = ["cadet", "pisciner", "bocal"];
   return (
     <div className="w-full flex justify-center">
       <div className="w-11/12 mt-3 p-4 px-6 bg-teal-500 rounded-xl flex justify-end absolute items-center">
@@ -21,7 +21,7 @@ export const Topbar = () => {
             {userKind}
           </MenuButton>
           <MenuList>
-            {["cadet", "pisciner", "bocal"]
+            {kind
               .filter((i) => i !== userKind)
               .map((ele, i) => (
                 <MenuItem key={i} onClick={() => setUserKind(ele)}>

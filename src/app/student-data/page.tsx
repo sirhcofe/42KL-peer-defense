@@ -2,7 +2,7 @@
 
 import { Image, Box, Heading } from "@chakra-ui/react";
 import { useUserContext } from "@/hooks/dataProvider/UserDataProvider";
-import StudentTable from "@/components/student-data/StudentTable";
+import CriticalDays from "@/components/student-data/CriticalDays";
 import LastSubmission from "@/components/student-data/LastSubmission";
 const Banana = () => {
   const { imageURL, intraData } = useUserContext();
@@ -14,7 +14,7 @@ const Banana = () => {
         justifyContent={"center"}
         alignItems={"center"}
         w={"100vw"}
-        h={"100vw"}
+        h={"100vh"}
       >
         <Heading as={"h1"}> Page is loading please wait.</Heading>
       </Box>
@@ -24,10 +24,11 @@ const Banana = () => {
       display={"flex"}
       flexDirection={"row"}
       justifyContent={"space-around"}
-      alignItems={"center"}
+      // alignItems={"center"}
+      marginTop={"80px"}
       gap={"32px"}
     >
-      <StudentTable />
+      <CriticalDays />
       <LastSubmission />
     </Box>
   );
