@@ -2,11 +2,9 @@ import {
   Table,
   Thead,
   Tbody,
-  Tfoot,
   Tr,
   Th,
   Td,
-  TableCaption,
   TableContainer,
   Box,
   Heading,
@@ -15,7 +13,6 @@ import {
   Input,
   InputLeftAddon,
   InputGroup,
-  Link,
 } from "@chakra-ui/react";
 
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
