@@ -15,12 +15,13 @@ import {
   Input,
   InputLeftAddon,
   InputGroup,
+  Link,
 } from "@chakra-ui/react";
 
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import { relative } from "path";
 import React from "react";
 import { useStudentContext } from "@/hooks/dataProvider/StudentDataProvider";
+import { convertDownload } from "@/utils/filterObject";
 
 // sort 0 = ascending, 1 = descending
 // days can be -1 to prevent filtering
@@ -84,7 +85,13 @@ const CriticalDays = () => {
           </InputGroup>
         </Box>
       </Box>
-      <Button>Download</Button>
+      <Button
+        onClick={() => {
+          convertDownload(displayList);
+        }}
+      >
+        Download
+      </Button>
       <TableContainer
         maxHeight={"420px"}
         overflowY={"scroll"}
