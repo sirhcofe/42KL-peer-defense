@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const firestore = getFirestore(app);
 
-export async function GET(req: NextRequest, res: Response) {
+export async function GET(req: NextRequest, res: NextResponse) {
   const param = req.nextUrl.searchParams;
   const collectionName = param.get("collectionName");
   const snapshot = await getDocs(collection(firestore, collectionName || ""));
