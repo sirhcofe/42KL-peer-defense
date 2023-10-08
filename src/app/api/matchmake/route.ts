@@ -9,7 +9,7 @@ import {
   doc,
   where,
 } from "firebase/firestore";
-import app from "@/../firebase";
+import app from "@/firebase";
 import { NextRequest, NextResponse } from "next/server";
 
 const firestore = getFirestore(app);
