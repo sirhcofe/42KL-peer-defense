@@ -21,7 +21,6 @@ export const Topbar = () => {
             {userKind}
           </MenuButton>
           <MenuList>
-<<<<<<< Updated upstream
             {kind
               .filter((i) => i !== userKind)
               .map((ele, i) => (
@@ -29,13 +28,6 @@ export const Topbar = () => {
                   {ele}
                 </MenuItem>
               ))}
-=======
-            {["cadet", "pisciner", "bocal"].map((ele, i) => (
-              <MenuItem key={i} onClick={() => setUserKind(ele)}>
-                {ele}
-              </MenuItem>
-            ))}
->>>>>>> Stashed changes
           </MenuList>
         </Menu>
       </div>
