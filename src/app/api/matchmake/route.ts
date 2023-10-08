@@ -112,9 +112,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
 }
 
 export async function GET(req: NextRequest, res: NextResponse) {
-<<<<<<< Updated upstream
-  return Response.json({ message: "API working!" });
-=======
   const searchParams = req.nextUrl.searchParams;
   const evaluator = searchParams.get("evaluator");
 
@@ -131,5 +128,4 @@ export async function GET(req: NextRequest, res: NextResponse) {
     ret.push({ ...doc.data(), id: doc.id });
   });
   return Response.json(ret);
->>>>>>> Stashed changes
 }
