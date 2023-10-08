@@ -1,7 +1,6 @@
 import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
 import app from "@/../firebase";
 import { NextRequest, NextResponse } from "next/server";
-import { Dai_Banna_SIL } from "next/font/google";
 
 const firestore = getFirestore(app);
 
