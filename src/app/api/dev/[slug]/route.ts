@@ -1,44 +1,85 @@
 import app from "@/firebase";
-import { addDoc, collection, getFirestore } from "firebase/firestore";
-import { NextRequest } from "next/server";
+import {
+  collection,
+  addDoc,
+  getFirestore,
+  writeBatch,
+  doc,
+} from "firebase/firestore";
+import { NextRequest, NextResponse } from "next/server";
 
 const firestore = getFirestore(app);
 
-type CadetSelection = {
-  evaluator: string;
-  day: number;
-  timeslot: number;
-};
-
 export async function POST(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { slug: string } },
 ) {
-  const slug = params.slug; // 'a', 'b', or 'c'
-  const sParam = request.nextUrl.searchParams;
+  const slug = params.slug;
+  const searchParams = req.nextUrl.searchParams;
+  const query = searchParams.get("amount");
+  const body = await req.json();
 
-  if (slug === "cadet-selection") {
-    const body: CadetSelection = await request.json();
+  if (slug === "cadet-slot") {
+    const colRef = collection(firestore, slug);
+    const batch = writeBatch(firestore);
+    const amount = parseInt(query);
+    const dateTime = new Date(2023, 9, body.day, body.hour);
 
-    // console.log(body);
+    for (var i = 0; i < amount; i++) {
+      const data = {
+        dateTime,
+        evaluator: `${body.evaluator}${Math.floor(Math.random() * 100)}`,
+        isDefault: body.isDefault,
+      };
+      var docRef = doc(colRef); //automatically generate unique id
+      batch.set(docRef, data);
+    }
 
-    const time = new Date(2023, 10, body.day, body.timeslot);
-
-    const data = { evaluator: body.evaluator, time };
-
-    // console.log(data);
     try {
-      const docRef = await addDoc(
-        collection(firestore, "cadet-selection"),
-        data,
-      );
+      await batch.commit();
       return Response.json({
-        message: "Successfully add document",
-        id: docRef.id,
+        message: "Successfully create multiple document",
       });
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+      return Response.json(
+        { error: "Failed to add documemt" },
+        { status: 500 },
+      );
+    }
   }
-  // return Response.json({ time: time, timeslot: body.timeslot });
 
-  return Response.json(slug);
+  if (slug === "rush-timetables") {
+    const colRef = collection(firestore, slug);
+    const batch = writeBatch(firestore);
+    const amount = parseInt(query);
+    const dateTime = new Date(2023, 9, body.day, body.hour);
+
+    for (var i = 0; i < amount; i++) {
+      const data = {
+        customReason: "",
+        dateTime,
+        evaluator: "",
+        isDefault: body.isDefault,
+        teamId: "",
+      };
+      var docRef = doc(colRef); //automatically generate unique id
+      batch.set(docRef, data);
+    }
+
+    try {
+      await batch.commit();
+      return Response.json({
+        message: "Successfully create multiple document",
+      });
+    } catch (err) {
+      console.error(err);
+      return Response.json(
+        { error: "Failed to add documemt" },
+        { status: 500 },
+      );
+    }
+  }
+
+  return Response.json({ slug });
 }
