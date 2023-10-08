@@ -15,8 +15,11 @@ import {
   Center,
   Tooltip,
   Collapse,
+  useToast,
+  useDisclosure,
 } from "@chakra-ui/react";
 import CustomTimeModal from "./CustomTimeModal";
+import axios from "axios";
 
 interface ExtCircumModalProps {
   isOpen: boolean;
@@ -152,6 +155,8 @@ function PickTime({
 }
 
 export default function TimeSlotPicker() {
+  const [subscribed, setSubscribed] = useState(false);
+  const { isOpen, onToggle } = useDisclosure();
   const [data, setData] = useState<any>([]);
   const [timeSlots, setTimeSlots] = useState<any>([]);
   const [selectedDate, setSelectedDate] = useState(-1);
@@ -166,6 +171,8 @@ export default function TimeSlotPicker() {
     currentDate.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
   );
 
+  const toast = useToast();
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -176,6 +183,7 @@ export default function TimeSlotPicker() {
           const jsonData = await res.json();
           setData(jsonData.data);
           setTimeSlots(jsonData.timeSlots);
+          onToggle();
         } else {
           console.error("Failed to fetch data");
         }
@@ -201,58 +209,108 @@ export default function TimeSlotPicker() {
     }
   }, [selectedDate]);
 
+  const handleUpload = () => {
+    const body = {
+      dateTime: finalDate,
+      evaluator: "",
+      isDefault: mode,
+      teamId: "",
+      customReason: reason,
+    };
+    axios
+      .post("/api/rush-timeslot?collection=rush-timetables", body)
+      .then(() => {
+        onToggle();
+        setSubscribed(true);
+        toast({
+          title: "Date confirmed",
+          description:
+            "Please look out for email/discord dm for slot confirmation.",
+          status: "success",
+          position: "top-right",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .catch((error) => {
+        if (error.response) {
+          toast({
+            title: "Wo mei KKK",
+            description: error.response,
+            status: "error",
+            position: "top-right",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      });
+  };
+
   return (
-    <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
-      <h2>Pick a timeslot for your team rush evaluation</h2>
-      <div className="flex gap-x-8">
-        <PickTime
-          data={data}
-          timeSlots={timeSlots}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-        />
-        <Box position="relative" className="mx-8" padding="4">
-          <Center height={"full"}>
-            <Divider orientation="vertical" border="1px solid #00B9BB" />
-          </Center>
-          <AbsoluteCenter bg="white" px="4">
-            or
-          </AbsoluteCenter>
-        </Box>
-        <CustomTimeButton
-          finalDate={finalDate}
-          setFinalDate={setFinalDate}
-          setReason={setReason}
-          setMode={setMode}
-          setSelectedDate={setSelectedDate}
-        />
-      </div>
-      <Collapse in={finalDate !== null} animateOpacity className="w-[540px]">
-        <div className="w-full flex flex-col items-center">
-          <Divider orientation="horizontal" border="1px solid #00B9BB" />
-          {finalDate !== null && (
-            <>
-              <p className="text-gray-500 mt-4">Your selected time</p>
-              <h3 className="text-[#00B9BB] text-xl mb-4">
-                {finalDate?.getDate().toString() +
-                  "/" +
-                  (finalDate?.getUTCMonth() + 1).toString() +
-                  "/" +
-                  finalDate?.getUTCFullYear().toString() +
-                  " " +
-                  finalDate?.getHours().toString() +
-                  ":00"}
-              </h3>
-              <button
-                className="w-60 rounded-full bg-[#00B9BB] py-2"
-                onClick={handleUpload}
-              >
-                Confirm
-              </button>
-            </>
-          )}
+    <>
+      <Collapse in={isOpen} animateOpacity className="w-full h-full">
+        <div className="flex flex-col w-full h-full bg-white items-center justify-center py-8 gap-y-6">
+          <h2>Pick a timeslot for your team rush evaluation</h2>
+          <div className="flex gap-x-8">
+            <PickTime
+              data={data}
+              timeSlots={timeSlots}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+            />
+            <Box position="relative" className="mx-8" padding="4">
+              <Center height={"full"}>
+                <Divider orientation="vertical" border="1px solid #00B9BB" />
+              </Center>
+              <AbsoluteCenter bg="white" px="4">
+                or
+              </AbsoluteCenter>
+            </Box>
+            <CustomTimeButton
+              finalDate={finalDate}
+              setFinalDate={setFinalDate}
+              setReason={setReason}
+              setMode={setMode}
+              setSelectedDate={setSelectedDate}
+            />
+          </div>
+          <Collapse
+            in={finalDate !== null}
+            animateOpacity
+            className="w-[540px]"
+          >
+            <div className="w-full flex flex-col items-center">
+              <Divider orientation="horizontal" border="1px solid #00B9BB" />
+              {finalDate !== null && (
+                <>
+                  <p className="text-gray-500 mt-4">Your selected time</p>
+                  <h3 className="text-[#00B9BB] text-xl mb-4">
+                    {finalDate?.getDate().toString() +
+                      "/" +
+                      (finalDate?.getUTCMonth() + 1).toString() +
+                      "/" +
+                      finalDate?.getUTCFullYear().toString() +
+                      " " +
+                      finalDate?.getHours().toString() +
+                      ":00"}
+                  </h3>
+                  <button
+                    className="w-60 rounded-full bg-[#00B9BB] py-2"
+                    onClick={handleUpload}
+                  >
+                    Confirm
+                  </button>
+                </>
+              )}
+            </div>
+          </Collapse>
         </div>
       </Collapse>
-    </div>
+      {subscribed && (
+        <div className="w-full h-full flex flex-col items-center justify-center mt-40">
+          <h2>You have successfully registered for a defense!</h2>
+        </div>
+      )}
+    </>
   );
 }

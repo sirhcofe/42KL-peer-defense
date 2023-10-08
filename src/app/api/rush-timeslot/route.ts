@@ -59,6 +59,7 @@ type AddTimeslotBody = {
   evaluator: string;
   isDefault: boolean;
   teamId: string;
+  customReason: string;
 };
 export async function POST(req: NextRequest, res: NextResponse) {
   const collectionName = req.nextUrl.searchParams.get("collection");
