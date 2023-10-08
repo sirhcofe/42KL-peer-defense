@@ -5,13 +5,15 @@ import { getCookies } from "@/serverActions/getCookies";
 import { urlConfig } from "@/uiConfig/intraConfig";
 import axios from "axios";
 
+export type UserKindT = "cadet" | "pisciner" | "bocal" | "";
+
 type UserDataT = {
   accessToken: string;
   setAccessToken: (data: string) => void;
   intraData: IntraDataT;
   setIntraData: (data: IntraDataT) => void;
-  userKind: "cadet" | "pisciner" | "bocal";
-  setUserKind: (data: string) => void;
+  userKind: UserKindT;
+  setUserKind: (data: UserKindT) => void;
   intraId: string;
   setIntraId: (value: string) => void;
   displayName: string;
@@ -31,7 +33,7 @@ export const UserDataProvider = ({
 }) => {
   const [accessToken, setAccessToken] = React.useState<string>("");
   const [intraData, setIntraData] = React.useState<IntraDataT>({});
-  const [userKind, setUserKind] = React.useState<string>("");
+  const [userKind, setUserKind] = React.useState<UserKindT>("");
   const [intraId, setIntraId] = React.useState<string>("");
   const [displayName, setDisplayName] = React.useState<string>("");
   const [imageURL, setImageURL] = React.useState<string>("");
